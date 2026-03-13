@@ -1,0 +1,591 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #111118;
+  --surface: #1a1a2a;
+  --surface-2: #22223a;
+  --border: #2e2e4a;
+  --text: #e0e0f0;
+  --text-muted: #7878a0;
+  --toolbar-h: 48px;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Loading ─────────────────────────────────────────── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+/* ── App layout ──────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Toolbar ─────────────────────────────────────────── */
+.toolbar {
+  height: var(--toolbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 88px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+}
+
+.toolbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  -webkit-app-region: no-drag;
+}
+
+.completed-toggle {
+  -webkit-app-region: no-drag;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.completed-toggle:hover {
+  color: var(--text);
+  border-color: #4a4a6a;
+}
+.completed-toggle.active {
+  color: hsl(220, 75%, 70%);
+  border-color: hsl(220, 40%, 35%);
+}
+
+/* ── Board ───────────────────────────────────────────── */
+.board {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  align-items: flex-start;
+  height: 100%;
+}
+
+/* ── Column ──────────────────────────────────────────── */
+.column {
+  flex-shrink: 0;
+  width: 280px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+}
+.column-blocked {
+  border-color: hsl(30, 70%, 40%);
+}
+
+.column-blocked-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(30, 80%, 60%);
+  background: hsl(30, 40%, 12%);
+  border: 1px solid hsl(30, 50%, 28%);
+  border-radius: 4px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.column-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.column-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.column-delete:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.column-delete.confirm {
+  color: hsl(0, 70%, 60%);
+}
+
+.task-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty-column {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.add-task-btn {
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 10px;
+  text-align: left;
+  width: 100%;
+  border-radius: 0 0 10px 10px;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.add-task-btn:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.drag-over {
+  border-top: 2px solid var(--accent, var(--border));
+}
+
+/* ── Task card ───────────────────────────────────────── */
+.task-card {
+  background: var(--card-bg, var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  display: flex;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.task-card:hover {
+  border-color: var(--accent, var(--border));
+}
+
+.task-card-accent {
+  width: 3px;
+  flex-shrink: 0;
+  background: var(--accent, var(--text-muted));
+  border-radius: 3px 0 0 3px;
+}
+
+.task-card-body {
+  flex: 1;
+  padding: 9px 10px;
+  min-width: 0;
+}
+
+.task-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.task-card-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.task-type-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(270, 70%, 70%);
+  background: hsl(270, 30%, 12%);
+  border: 1px solid hsl(270, 40%, 28%);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.task-ticket {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: monospace;
+}
+
+.task-status {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.task-status-idle {
+  color: var(--text-muted);
+  background: transparent;
+}
+.task-status-in_progress {
+  color: hsl(210, 80%, 65%);
+  background: hsl(210, 40%, 12%);
+  border: 1px solid hsl(210, 40%, 28%);
+}
+.task-status-agent {
+  color: hsl(270, 70%, 70%);
+  background: hsl(270, 30%, 12%);
+  border: 1px solid hsl(270, 40%, 28%);
+}
+
+/* ── Status toggle (edit modal) ──────────────────────── */
+.status-toggle {
+  display: flex;
+  gap: 6px;
+}
+.status-option {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.status-option-idle.active {
+  color: var(--text);
+  border-color: #4a4a6a;
+  background: var(--surface);
+}
+.status-option-in_progress.active {
+  color: hsl(210, 80%, 65%);
+  border-color: hsl(210, 40%, 35%);
+  background: hsl(210, 40%, 12%);
+}
+.status-option-agent.active {
+  color: hsl(270, 70%, 70%);
+  border-color: hsl(270, 40%, 35%);
+  background: hsl(270, 30%, 12%);
+}
+
+.task-description {
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.complete-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  line-height: 1.4;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.complete-btn:hover {
+  color: hsl(120, 60%, 60%);
+  border-color: hsl(120, 40%, 35%);
+  background: hsl(120, 20%, 12%);
+}
+.complete-btn.pickup-active {
+  color: hsl(210, 80%, 65%);
+  border-color: hsl(210, 40%, 35%);
+  background: hsl(210, 40%, 12%);
+}
+
+/* ── Add column ──────────────────────────────────────── */
+.add-column-btn {
+  flex-shrink: 0;
+  width: 200px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  transition: color 0.15s, border-color 0.15s;
+  align-self: flex-start;
+}
+.add-column-btn:hover {
+  color: var(--text);
+  border-color: #4a4a6a;
+}
+
+.add-column-form-wrapper {
+  flex-shrink: 0;
+  width: 240px;
+  align-self: flex-start;
+}
+
+.add-column-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.add-column-input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+}
+.add-column-input:focus {
+  border-color: hsl(220, 50%, 45%);
+}
+
+.add-column-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ── Modal ───────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 440px;
+  padding: 20px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.modal-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.modal-header h2 span {
+  color: hsl(220, 70%, 65%);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.modal-close:hover {
+  color: var(--text);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.form-group label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.form-group input,
+.form-group textarea {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 8px 10px;
+  outline: none;
+  resize: vertical;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: hsl(220, 50%, 45%);
+}
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn-primary {
+  background: hsl(220, 60%, 42%);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 16px;
+  transition: background 0.15s;
+}
+.btn-primary:hover:not(:disabled) {
+  background: hsl(220, 60%, 50%);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 7px 16px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-secondary:hover {
+  color: var(--text);
+  border-color: #4a4a6a;
+}
+
+/* ── Completed drawer ────────────────────────────────── */
+.completed-drawer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.completed-scroll {
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.completed-empty {
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 40px;
+}
+
+.completed-group-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.completed-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
