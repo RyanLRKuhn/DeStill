@@ -4,7 +4,7 @@ export interface Column {
 }
 
 export type TaskType = 'work' | 'personal' | 'agent_generated'
-export type WorkStatus = 'idle' | 'in_progress' | 'agent'
+export type WorkStatus = 'idle' | 'in_progress' | 'agent' | 'available'
 
 export interface Task {
   id: string

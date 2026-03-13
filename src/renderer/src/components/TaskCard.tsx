@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Task } from '../types'
+import { Task, getTaskType } from '../types'
 import { getDegradationColor, getDegradationBg } from '../utils/degradation'
 import { useApp } from '../context/AppContext'
 import { EditTaskModal } from './EditTaskModal'
@@ -36,7 +36,16 @@ export function TaskCard({ task }: Props) {
               <button className="complete-btn" onClick={() => setEditing(true)} title="Edit task">
                 ✎
               </button>
-              {!task.completed && task.ticket && (
+              {!task.completed && getTaskType(task) === 'work' && (
+                <button
+                  className={`complete-btn${task.status === 'available' ? ' available-active' : ''}`}
+                  onClick={() => dispatch({ type: 'SET_TASK_STATUS', id: task.id, status: task.status === 'available' ? 'idle' : 'available' })}
+                  title={task.status === 'available' ? 'Revoke agent availability' : 'Make available for agent'}
+                >
+                  ⚡
+                </button>
+              )}
+              {!task.completed && (
                 <button
                   className={`complete-btn${task.status === 'in_progress' ? ' pickup-active' : ''}`}
                   onClick={() => dispatch({ type: 'SET_TASK_STATUS', id: task.id, status: task.status === 'in_progress' ? 'idle' : 'in_progress' })}
@@ -61,7 +70,7 @@ export function TaskCard({ task }: Props) {
             {task.agentGenerated && <span className="task-type-badge">agent</span>}
             {task.ticket && <span className="task-ticket">{task.ticket}</span>}
             <span className={`task-status task-status-${task.status ?? 'idle'}`}>
-              {task.status === 'in_progress' ? 'In Progress' : task.status === 'agent' ? 'Agent' : 'Idle'}
+              {task.status === 'in_progress' ? 'In Progress' : task.status === 'agent' ? 'Agent' : task.status === 'available' ? 'Available' : 'Idle'}
             </span>
           </div>
           {task.description && <p className="task-description">{task.description}</p>}

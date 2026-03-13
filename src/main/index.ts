@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Notification } from 'electron'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { createServer, IncomingMessage, ServerResponse } from 'http'
@@ -40,6 +40,7 @@ function agentCompleteTask(taskId: string, branchName: string, prUrl: string): {
   const task = data.tasks.find((t) => t.id === taskId)
   if (!task) return { success: false, error: 'Task not found' }
   if (task.agentGenerated) return { success: false, error: 'Agent-generated tasks can only be completed by the user' }
+  if (task.status !== 'agent') return { success: false, error: 'Task is not in agent status. The agent must pick up the task before completing it.' }
 
   const updatedTasks = data.tasks.map((t) =>
     t.id === taskId ? { ...t, completed: true, completedAt: new Date().toISOString(), status: 'idle' } : t
@@ -65,6 +66,12 @@ function agentCompleteTask(taskId: string, branchName: string, prUrl: string): {
 
   store.set('appData', { ...data, tasks: updatedTasks })
   notifyRenderer()
+
+  new Notification({
+    title: 'PR Ready for Review',
+    body: `"${task.title}" is complete — a Review PR task needs your attention.`,
+    sound: 'default'
+  }).show()
 
   return { success: true, reviewTaskId: reviewTask.id }
 }
@@ -157,6 +164,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  app.setName('Task Manager')
   app.setAppUserModelId('com.personal.taskmanager')
 
   ipcMain.handle('store:read', () => {

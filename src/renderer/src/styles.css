@@ -312,6 +312,11 @@ body {
   background: hsl(270, 30%, 12%);
   border: 1px solid hsl(270, 40%, 28%);
 }
+.task-status-available {
+  color: hsl(50, 90%, 60%);
+  background: hsl(50, 40%, 10%);
+  border: 1px solid hsl(50, 60%, 28%);
+}
 
 /* ── Status toggle (edit modal) ──────────────────────── */
 .status-toggle {
@@ -344,6 +349,11 @@ body {
   border-color: hsl(270, 40%, 35%);
   background: hsl(270, 30%, 12%);
 }
+.status-option-available.active {
+  color: hsl(50, 90%, 60%);
+  border-color: hsl(50, 60%, 35%);
+  background: hsl(50, 40%, 10%);
+}
 
 .task-description {
   margin-top: 5px;
@@ -374,6 +384,11 @@ body {
   color: hsl(210, 80%, 65%);
   border-color: hsl(210, 40%, 35%);
   background: hsl(210, 40%, 12%);
+}
+.complete-btn.available-active {
+  color: hsl(50, 90%, 60%);
+  border-color: hsl(50, 60%, 35%);
+  background: hsl(50, 40%, 10%);
 }
 
 /* ── Add column ──────────────────────────────────────── */
@@ -538,6 +553,22 @@ body {
 .btn-primary:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid #6b2a2a;
+  border-radius: 6px;
+  color: #e06c6c;
+  cursor: pointer;
+  font-size: 13px;
+  margin-right: auto;
+  padding: 7px 16px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-danger:hover {
+  background: rgba(224, 108, 108, 0.12);
+  border-color: #e06c6c;
 }
 
 .btn-secondary {

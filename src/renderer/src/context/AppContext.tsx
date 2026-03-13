@@ -18,6 +18,7 @@ type Action =
   | { type: 'UNCOMPLETE_TASK'; id: string }
   | { type: 'REORDER_TASK'; id: string; targetId: string }
   | { type: 'SET_PROMPT'; taskType: TaskType; prompt: string }
+  | { type: 'DELETE_TASK'; id: string }
   | { type: 'TOGGLE_COMPLETED' }
 
 const defaultPrompts: Record<TaskType, string> = { work: '', personal: '', agent_generated: '' }
@@ -106,6 +107,9 @@ function reducer(state: State, action: Action): State {
         ...state,
         prompts: { ...state.prompts, [action.taskType]: action.prompt }
       }
+
+    case 'DELETE_TASK':
+      return { ...state, tasks: state.tasks.filter((t) => t.id !== action.id) }
 
     case 'TOGGLE_COMPLETED':
       return { ...state, showCompleted: !state.showCompleted }

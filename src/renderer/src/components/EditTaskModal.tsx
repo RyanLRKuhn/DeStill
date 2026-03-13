@@ -73,14 +73,14 @@ export function EditTaskModal({ task, onClose }: Props) {
           <div className="form-group">
             <label>Status</label>
             <div className="status-toggle">
-              {(['idle', 'in_progress', 'agent'] as WorkStatus[]).map((s) => (
+              {(['idle', 'in_progress', 'available', 'agent'] as WorkStatus[]).map((s) => (
                 <button
                   key={s}
                   type="button"
                   className={`status-option status-option-${s} ${status === s ? 'active' : ''}`}
                   onClick={() => setStatus(s)}
                 >
-                  {s === 'idle' ? 'Idle' : s === 'in_progress' ? 'In Progress' : 'Agent'}
+                  {s === 'idle' ? 'Idle' : s === 'in_progress' ? 'In Progress' : s === 'available' ? 'Available' : 'Agent'}
                 </button>
               ))}
             </div>
@@ -96,6 +96,13 @@ export function EditTaskModal({ task, onClose }: Props) {
             />
           </div>
           <div className="modal-actions">
+            <button
+              type="button"
+              className="btn-danger"
+              onClick={() => { dispatch({ type: 'DELETE_TASK', id: task.id }); onClose() }}
+            >
+              Delete
+            </button>
             <button type="button" className="btn-secondary" onClick={onClose}>
               Cancel
             </button>
