@@ -24,8 +24,28 @@ export function getTaskType(task: Task): TaskType {
   return task.ticket ? 'work' : 'personal'
 }
 
+export type RecurrenceRule =
+  | { kind: 'once';         date: string }
+  | { kind: 'daily' }
+  | { kind: 'every_n_days'; n: number }
+  | { kind: 'weekly';       dayOfWeek: number }
+  | { kind: 'monthly';      dayOfMonth: number }
+
+export interface ScheduledTask {
+  id: string
+  columnId: string
+  title: string
+  description: string
+  ticket?: string
+  timeOfDay: string
+  recurrence: RecurrenceRule
+  lastFiredAt?: string
+  createdAt: string
+}
+
 export interface AppData {
   columns: Column[]
   tasks: Task[]
   prompts: Record<TaskType, string>
+  scheduledTasks: ScheduledTask[]
 }

@@ -19,10 +19,30 @@ interface Task {
   agentGenerated?: boolean
 }
 
+type RecurrenceRule =
+  | { kind: 'once';         date: string }
+  | { kind: 'daily' }
+  | { kind: 'every_n_days'; n: number }
+  | { kind: 'weekly';       dayOfWeek: number }
+  | { kind: 'monthly';      dayOfMonth: number }
+
+interface ScheduledTask {
+  id: string
+  columnId: string
+  title: string
+  description: string
+  ticket?: string
+  timeOfDay: string
+  recurrence: RecurrenceRule
+  lastFiredAt?: string
+  createdAt: string
+}
+
 interface AppData {
   columns: { id: string; name: string }[]
   tasks: Task[]
   prompts?: Record<string, string>
+  scheduledTasks?: ScheduledTask[]
 }
 
 const store = new Store<{ appData: object }>({
@@ -30,6 +50,69 @@ const store = new Store<{ appData: object }>({
     appData: { columns: [], tasks: [] }
   }
 })
+
+function hhmm(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+function toDateStr(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+function isDue(s: ScheduledTask, now: Date): boolean {
+  if (s.timeOfDay !== hhmm(now)) return false
+  const r = s.recurrence
+  const today = toDateStr(now)
+  const lastDay = s.lastFiredAt ? toDateStr(new Date(s.lastFiredAt)) : null
+  if (r.kind === 'once') return r.date === today && lastDay === null
+  if (lastDay === today) return false
+  if (r.kind === 'daily') return true
+  if (r.kind === 'every_n_days') {
+    if (!s.lastFiredAt) return true
+    return Math.floor((now.getTime() - new Date(s.lastFiredAt).getTime()) / 86_400_000) >= r.n
+  }
+  if (r.kind === 'weekly') return now.getDay() === r.dayOfWeek
+  if (r.kind === 'monthly') return now.getDate() === r.dayOfMonth
+  return false
+}
+
+function startScheduler(): void {
+  setInterval(() => {
+    const now = new Date()
+    const data = store.get('appData') as AppData
+    const scheduled = data.scheduledTasks ?? []
+    if (scheduled.length === 0) return
+
+    let dirty = false
+    const newTasks: Task[] = []
+    const updatedScheduled = scheduled.map((s) => {
+      if (!isDue(s, now)) return s
+      dirty = true
+      const task: Task = {
+        id: randomUUID(),
+        title: s.title,
+        description: s.description,
+        columnId: s.columnId,
+        createdAt: now.toISOString(),
+        completed: false,
+        status: 'idle',
+        ...(s.ticket ? { ticket: s.ticket } : {})
+      }
+      newTasks.push(task)
+      new Notification({
+        title: 'Scheduled task added',
+        body: `"${s.title}" has been added to your board.`,
+        sound: 'default'
+      }).show()
+      return { ...s, lastFiredAt: now.toISOString() }
+    })
+
+    if (dirty) {
+      store.set('appData', { ...data, tasks: [...data.tasks, ...newTasks], scheduledTasks: updatedScheduled })
+      notifyRenderer()
+    }
+  }, 60_000)
+}
 
 function notifyRenderer(): void {
   BrowserWindow.getAllWindows().forEach((win) => win.webContents.send('store:changed'))
@@ -180,6 +263,7 @@ app.whenReady().then(() => {
   })
 
   startHttpServer()
+  startScheduler()
   createWindow()
 
   app.on('activate', () => {

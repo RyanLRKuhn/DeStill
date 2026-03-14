@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
 import { nanoid } from 'nanoid'
-import { AppData, Column, Task, TaskType, WorkStatus } from '../types'
+import { AppData, Column, Task, TaskType, WorkStatus, ScheduledTask } from '../types'
 
 interface State extends AppData {
   showCompleted: boolean
@@ -19,6 +19,8 @@ type Action =
   | { type: 'REORDER_TASK'; id: string; targetId: string }
   | { type: 'SET_PROMPT'; taskType: TaskType; prompt: string }
   | { type: 'DELETE_TASK'; id: string }
+  | { type: 'ADD_SCHEDULED_TASK'; task: ScheduledTask }
+  | { type: 'DELETE_SCHEDULED_TASK'; id: string }
   | { type: 'TOGGLE_COMPLETED' }
 
 const defaultPrompts: Record<TaskType, string> = { work: '', personal: '', agent_generated: '' }
@@ -111,6 +113,12 @@ function reducer(state: State, action: Action): State {
     case 'DELETE_TASK':
       return { ...state, tasks: state.tasks.filter((t) => t.id !== action.id) }
 
+    case 'ADD_SCHEDULED_TASK':
+      return { ...state, scheduledTasks: [...state.scheduledTasks, action.task] }
+
+    case 'DELETE_SCHEDULED_TASK':
+      return { ...state, scheduledTasks: state.scheduledTasks.filter((s) => s.id !== action.id) }
+
     case 'TOGGLE_COMPLETED':
       return { ...state, showCompleted: !state.showCompleted }
 
@@ -122,6 +130,7 @@ function reducer(state: State, action: Action): State {
 const initialState: State = {
   columns: [],
   tasks: [],
+  scheduledTasks: [],
   prompts: defaultPrompts,
   showCompleted: false,
   loaded: false
@@ -153,12 +162,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const save = useCallback((nextState: State) => {
     if (!nextState.loaded) return
-    window.store.write({ columns: nextState.columns, tasks: nextState.tasks, prompts: nextState.prompts })
+    window.store.write({ columns: nextState.columns, tasks: nextState.tasks, prompts: nextState.prompts, scheduledTasks: nextState.scheduledTasks })
   }, [])
 
   useEffect(() => {
     save(state)
-  }, [state.columns, state.tasks, state.prompts, save])
+  }, [state.columns, state.tasks, state.prompts, state.scheduledTasks, save])
 
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>
 }

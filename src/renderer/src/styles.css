@@ -113,11 +113,11 @@ body {
   flex-direction: column;
   max-height: 100%;
 }
-.column-blocked {
+.column-waiting {
   border-color: hsl(30, 70%, 40%);
 }
 
-.column-blocked-badge {
+.column-waiting-badge {
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -125,6 +125,23 @@ body {
   color: hsl(30, 80%, 60%);
   background: hsl(30, 40%, 12%);
   border: 1px solid hsl(30, 50%, 28%);
+  border-radius: 4px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+.column-blocked {
+  border-color: hsl(0, 70%, 40%);
+}
+
+.column-blocked-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(0, 80%, 70%);
+  background: hsl(0, 40%, 12%);
+  border: 1px solid hsl(0, 50%, 28%);
   border-radius: 4px;
   padding: 1px 6px;
   flex-shrink: 0;
@@ -187,25 +204,44 @@ body {
   padding: 16px 0;
 }
 
+.column-footer {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
 .add-task-btn {
   background: none;
   border: none;
-  border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   color: var(--text-muted);
   cursor: pointer;
   font-size: 12px;
   padding: 10px;
   text-align: left;
-  width: 100%;
-  border-radius: 0 0 10px 10px;
+  flex: 1;
+  border-radius: 0 0 0 10px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.schedule-task-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 0 0 10px 0;
   transition: color 0.15s, background 0.15s;
   flex-shrink: 0;
 }
-.add-task-btn:hover {
+
+.add-task-btn:hover,
+.schedule-task-btn:hover {
   color: var(--text);
   background: var(--surface-2);
 }
-
 .drag-over {
   border-top: 2px solid var(--accent, var(--border));
 }
@@ -619,4 +655,114 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* ── Wide modal variant ──────────────────────────────── */
+.modal-wide {
+  width: 500px;
+}
+
+/* ── Recurrence toggle ───────────────────────────────── */
+.recurrence-toggle {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.recurrence-option {
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.recurrence-option.active {
+  color: hsl(220, 70%, 70%);
+  border-color: hsl(220, 40%, 35%);
+  background: hsl(220, 30%, 12%);
+}
+
+/* ── Inline input with suffix ────────────────────────── */
+.input-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-inline input {
+  width: 80px;
+}
+
+.input-suffix {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Scheduled tasks list ────────────────────────────── */
+.empty-scheduled {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.scheduled-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 4px;
+}
+
+.scheduled-column-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scheduled-column-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.scheduled-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 9px 12px;
+}
+
+.scheduled-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.scheduled-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.scheduled-item-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.scheduled-item .btn-danger {
+  padding: 4px 10px;
+  font-size: 12px;
+  margin-right: 0;
+  flex-shrink: 0;
 }

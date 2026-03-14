@@ -3,6 +3,7 @@ import { Column as ColumnType, getTaskType } from '../types'
 import { useApp } from '../context/AppContext'
 import { TaskCard } from './TaskCard'
 import { AddTaskModal } from './AddTaskModal'
+import { ScheduleTaskModal } from './ScheduleTaskModal'
 
 interface Props {
   column: ColumnType
@@ -11,12 +12,13 @@ interface Props {
 export function Column({ column }: Props) {
   const { state, dispatch } = useApp()
   const [showModal, setShowModal] = useState(false)
+  const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const dragIdRef = useRef<string | null>(null)
 
   const tasks = state.tasks.filter((t) => t.columnId === column.id && !t.completed)
-  const blocked = tasks.length > 0 && getTaskType(tasks[0]) !== 'work'
+  const waiting = tasks.length > 0 && getTaskType(tasks[0]) === 'personal'
 
   function handleDelete() {
     if (confirmDelete) {
@@ -28,10 +30,10 @@ export function Column({ column }: Props) {
   }
 
   return (
-    <div className={`column ${blocked ? 'column-blocked' : ''}`}>
+    <div className={`column ${waiting ? 'column-waiting' : ''}`}>
       <div className="column-header">
         <h2 className="column-name">{column.name}</h2>
-        {blocked && <span className="column-blocked-badge">blocked</span>}
+        {waiting && <span className="column-waiting-badge">waiting</span>}
         <button
           className={`column-delete ${confirmDelete ? 'confirm' : ''}`}
           onClick={handleDelete}
@@ -65,11 +67,13 @@ export function Column({ column }: Props) {
         {tasks.length === 0 && <div className="empty-column">No tasks</div>}
       </div>
 
-      <button className="add-task-btn" onClick={() => setShowModal(true)}>
-        + Add task
-      </button>
+      <div className="column-footer">
+        <button className="add-task-btn" onClick={() => setShowModal(true)}>+ Add task</button>
+        <button className="schedule-task-btn" onClick={() => setShowScheduleModal(true)} title="Schedule task">⏱</button>
+      </div>
 
       {showModal && <AddTaskModal column={column} onClose={() => setShowModal(false)} />}
+      {showScheduleModal && <ScheduleTaskModal column={column} onClose={() => setShowScheduleModal(false)} />}
     </div>
   )
 }
