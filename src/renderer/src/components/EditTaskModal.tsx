@@ -12,6 +12,7 @@ export function EditTaskModal({ task, onClose }: Props) {
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
   const [ticket, setTicket] = useState(task.ticket ?? '')
+  const [dueDate, setDueDate] = useState(task.dueDate ?? '')
   const [status, setStatus] = useState<WorkStatus>(task.status ?? 'idle')
   const titleRef = useRef<HTMLInputElement>(null)
 
@@ -28,7 +29,8 @@ export function EditTaskModal({ task, onClose }: Props) {
       title: title.trim(),
       description: description.trim(),
       ticket: ticket.trim() || undefined,
-      status
+      status,
+      dueDate: dueDate || undefined
     })
     onClose()
   }
@@ -67,7 +69,6 @@ export function EditTaskModal({ task, onClose }: Props) {
               value={ticket}
               onChange={(e) => setTicket(e.target.value)}
               placeholder="e.g. PROJ-123 (optional)"
-              maxLength={32}
             />
           </div>
           <div className="form-group">
@@ -84,6 +85,15 @@ export function EditTaskModal({ task, onClose }: Props) {
                 </button>
               ))}
             </div>
+          </div>
+          <div className="form-group">
+            <label htmlFor="edit-task-due">Due Date</label>
+            <input
+              id="edit-task-due"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
           </div>
           <div className="form-group">
             <label htmlFor="edit-task-desc">Description</label>

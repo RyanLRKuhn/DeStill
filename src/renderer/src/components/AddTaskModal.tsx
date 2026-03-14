@@ -12,6 +12,7 @@ export function AddTaskModal({ column, onClose }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [ticket, setTicket] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const titleRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -26,7 +27,8 @@ export function AddTaskModal({ column, onClose }: Props) {
       columnId: column.id,
       title: title.trim(),
       description: description.trim(),
-      ...(ticket.trim() ? { ticket: ticket.trim() } : {})
+      ...(ticket.trim() ? { ticket: ticket.trim() } : {}),
+      ...(dueDate ? { dueDate } : {})
     })
     onClose()
   }
@@ -67,7 +69,15 @@ export function AddTaskModal({ column, onClose }: Props) {
               value={ticket}
               onChange={(e) => setTicket(e.target.value)}
               placeholder="e.g. PROJ-123 (optional)"
-              maxLength={32}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="task-due">Due Date</label>
+            <input
+              id="task-due"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
             />
           </div>
           <div className="form-group">

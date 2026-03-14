@@ -5,6 +5,7 @@ import { Column } from './components/Column'
 import { AddColumnInput } from './components/AddColumnInput'
 import { CompletedDrawer } from './components/CompletedDrawer'
 import { QuickCaptureModal } from './components/QuickCaptureModal'
+import { AgentLogPanel } from './components/AgentLogPanel'
 import './styles.css'
 
 function Board() {
@@ -35,6 +36,7 @@ function Board() {
         )}
       </div>
       {showQuickCapture && <QuickCaptureModal onClose={() => setShowQuickCapture(false)} />}
+      <AgentLogPanel />
     </div>
   )
 }

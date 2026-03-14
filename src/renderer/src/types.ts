@@ -1,6 +1,7 @@
 export interface Column {
   id: string
   name: string
+  repoPath?: string
 }
 
 export type TaskType = 'work' | 'personal' | 'agent_generated'
@@ -17,6 +18,8 @@ export interface Task {
   ticket?: string
   status?: WorkStatus
   agentGenerated?: boolean
+  agentId?: string
+  dueDate?: string
 }
 
 export function getTaskType(task: Task): TaskType {

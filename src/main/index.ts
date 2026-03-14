@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, Notification, Tray, nativeImage, gl
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { createServer, IncomingMessage, ServerResponse } from 'http'
+import { spawn, execSync, ChildProcess } from 'child_process'
 import Store from 'electron-store'
 
 const PORT = 7842
@@ -17,6 +18,7 @@ interface Task {
   ticket?: string
   status?: string
   agentGenerated?: boolean
+  agentId?: string
 }
 
 type RecurrenceRule =
@@ -53,6 +55,13 @@ const store = new Store<{ appData: object }>({
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
+
+interface AgentEntry {
+  agentId: string
+  process: ChildProcess
+  worktreePath: string
+}
+const activeAgents = new Map<string, AgentEntry>()
 
 function createTrayIcon(): Electron.NativeImage {
   // 16x16 RGBA — draw a minimal "T" shape as a template image
@@ -293,6 +302,67 @@ app.whenReady().then(() => {
     return agentCompleteTask(taskId, branchName, prUrl)
   })
 
+  ipcMain.handle('agent:spawn', async (_event, { taskId, taskDescription, repoPath }: { taskId: string; taskDescription: string; repoPath: string }) => {
+    console.log(`[agent:spawn] taskId=${taskId} repoPath=${repoPath}`)
+    const agentId = randomUUID()
+
+    // Update task: status = 'agent', agentId
+    const data = store.get('appData') as AppData
+    const updatedTasks = data.tasks.map((t) =>
+      t.id === taskId ? { ...t, status: 'agent', agentId } : t
+    )
+    store.set('appData', { ...data, tasks: updatedTasks })
+    notifyRenderer()
+
+    // Create git worktree
+    const worktreePath = join(repoPath, '..', '.task-worktrees', `task-${taskId}`)
+    console.log(`[agent:spawn] creating worktree at ${worktreePath}`)
+    try {
+      execSync(`git worktree add "${worktreePath}" -b "task/${taskId}"`, { cwd: repoPath })
+      console.log(`[agent:spawn] worktree created`)
+    } catch (err) {
+      console.error(`[agent:spawn] worktree failed:`, err)
+      const d = store.get('appData') as AppData
+      store.set('appData', {
+        ...d,
+        tasks: d.tasks.map((t) => t.id === taskId ? { ...t, status: 'available', agentId: undefined } : t)
+      })
+      notifyRenderer()
+      return { success: false, error: String(err) }
+    }
+
+    // Spawn claude
+    console.log(`[agent:spawn] spawning claude in ${worktreePath}`)
+    const claudeProcess = spawn(
+      'claude',
+      ['--dangerously-skip-permissions', '-p', taskDescription],
+      { cwd: worktreePath, stdio: ['ignore', 'pipe', 'pipe'] }
+    )
+    console.log(`[agent:spawn] claude pid=${claudeProcess.pid}`)
+
+    activeAgents.set(taskId, { agentId, process: claudeProcess, worktreePath })
+
+    const emit = (chunk: Buffer) => {
+      const text = chunk.toString()
+      process.stdout.write(`[agent ${taskId.slice(0, 8)}] ${text}`)
+      BrowserWindow.getAllWindows().forEach((win) =>
+        win.webContents.send('agent:log', { taskId, chunk: text })
+      )
+    }
+    claudeProcess.stdout?.on('data', emit)
+    claudeProcess.stderr?.on('data', emit)
+
+    claudeProcess.on('exit', (code) => {
+      console.log(`[agent:spawn] claude exited taskId=${taskId} code=${code}`)
+      activeAgents.delete(taskId)
+      BrowserWindow.getAllWindows().forEach((win) =>
+        win.webContents.send('agent:exited', { taskId, code })
+      )
+    })
+
+    return { success: true, agentId }
+  })
+
   tray = new Tray(createTrayIcon())
   tray.setToolTip('Task Manager')
   tray.on('click', () => {
@@ -315,6 +385,30 @@ app.whenReady().then(() => {
     if (!mainWindow) createWindow()
     else { mainWindow.show(); mainWindow.focus() }
   })
+})
+
+app.on('before-quit', (event) => {
+  if (activeAgents.size === 0) return
+
+  event.preventDefault()
+
+  const data = store.get('appData') as AppData
+  const agentTaskIds = new Set(activeAgents.keys())
+  store.set('appData', {
+    ...data,
+    tasks: data.tasks.map((t) => {
+      if (!agentTaskIds.has(t.id)) return t
+      const { agentId: _removed, ...rest } = t
+      return rest
+    })
+  })
+
+  for (const [taskId, entry] of activeAgents) {
+    entry.process.kill()
+    activeAgents.delete(taskId)
+  }
+
+  app.quit()
 })
 
 app.on('will-quit', () => {

@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { TaskCard } from './TaskCard'
 import { AddTaskModal } from './AddTaskModal'
 import { ScheduleTaskModal } from './ScheduleTaskModal'
+import { ColumnSettingsModal } from './ColumnSettingsModal'
 
 interface Props {
   column: ColumnType
@@ -13,6 +14,7 @@ export function Column({ column }: Props) {
   const { state, dispatch } = useApp()
   const [showModal, setShowModal] = useState(false)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const dragIdRef = useRef<string | null>(null)
@@ -34,6 +36,13 @@ export function Column({ column }: Props) {
       <div className="column-header">
         <h2 className="column-name">{column.name}</h2>
         {waiting && <span className="column-waiting-badge">waiting</span>}
+        <button
+          className="column-delete"
+          onClick={() => setShowSettings(true)}
+          title="Column settings"
+        >
+          ⚙
+        </button>
         <button
           className={`column-delete ${confirmDelete ? 'confirm' : ''}`}
           onClick={handleDelete}
@@ -74,6 +83,7 @@ export function Column({ column }: Props) {
 
       {showModal && <AddTaskModal column={column} onClose={() => setShowModal(false)} />}
       {showScheduleModal && <ScheduleTaskModal column={column} onClose={() => setShowScheduleModal(false)} />}
+      {showSettings && <ColumnSettingsModal column={column} onClose={() => setShowSettings(false)} />}
     </div>
   )
 }

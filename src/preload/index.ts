@@ -14,3 +14,22 @@ contextBridge.exposeInMainWorld('store', {
     return () => ipcRenderer.removeListener('quickcapture:show', callback)
   }
 })
+
+contextBridge.exposeInMainWorld('agent', {
+  spawn: (params: { taskId: string; taskDescription: string; repoPath: string }) =>
+    ipcRenderer.invoke('agent:spawn', params),
+
+  onLog: (callback: (payload: { taskId: string; chunk: string }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, payload: { taskId: string; chunk: string }) =>
+      callback(payload)
+    ipcRenderer.on('agent:log', handler)
+    return () => ipcRenderer.removeListener('agent:log', handler)
+  },
+
+  onExited: (callback: (payload: { taskId: string; code: number | null }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, payload: { taskId: string; code: number | null }) =>
+      callback(payload)
+    ipcRenderer.on('agent:exited', handler)
+    return () => ipcRenderer.removeListener('agent:exited', handler)
+  }
+})

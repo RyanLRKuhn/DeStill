@@ -11,8 +11,9 @@ type Action =
   | { type: 'LOAD'; data: AppData }
   | { type: 'ADD_COLUMN'; name: string }
   | { type: 'DELETE_COLUMN'; id: string }
-  | { type: 'ADD_TASK'; columnId: string; title: string; description: string; ticket?: string; status?: WorkStatus }
-  | { type: 'EDIT_TASK'; id: string; title: string; description: string; ticket?: string; status?: WorkStatus }
+  | { type: 'EDIT_COLUMN'; id: string; repoPath: string }
+  | { type: 'ADD_TASK'; columnId: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string }
+  | { type: 'EDIT_TASK'; id: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string }
   | { type: 'SET_TASK_STATUS'; id: string; status: WorkStatus }
   | { type: 'COMPLETE_TASK'; id: string }
   | { type: 'UNCOMPLETE_TASK'; id: string }
@@ -47,6 +48,14 @@ function reducer(state: State, action: Action): State {
         tasks: state.tasks.filter((t) => t.columnId !== action.id)
       }
 
+    case 'EDIT_COLUMN':
+      return {
+        ...state,
+        columns: state.columns.map((c) =>
+          c.id === action.id ? { ...c, repoPath: action.repoPath } : c
+        )
+      }
+
     case 'ADD_TASK': {
       const task: Task = {
         id: nanoid(),
@@ -56,6 +65,7 @@ function reducer(state: State, action: Action): State {
         createdAt: new Date().toISOString(),
         completed: false,
         ...(action.ticket ? { ticket: action.ticket } : {}),
+        ...(action.dueDate ? { dueDate: action.dueDate } : {}),
         status: action.status ?? 'idle'
       }
       return { ...state, tasks: [...state.tasks, task] }
@@ -66,7 +76,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         tasks: state.tasks.map((t) =>
           t.id === action.id
-            ? { ...t, title: action.title, description: action.description, ticket: action.ticket, status: action.status ?? t.status ?? 'idle' }
+            ? { ...t, title: action.title, description: action.description, ticket: action.ticket, status: action.status ?? t.status ?? 'idle', dueDate: action.dueDate ?? undefined }
             : t
         )
       }
