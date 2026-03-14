@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, Notification } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Notification, Tray, nativeImage, globalShortcut } from 'electron'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { createServer, IncomingMessage, ServerResponse } from 'http'
@@ -50,6 +50,26 @@ const store = new Store<{ appData: object }>({
     appData: { columns: [], tasks: [] }
   }
 })
+
+let mainWindow: BrowserWindow | null = null
+let tray: Tray | null = null
+
+function createTrayIcon(): Electron.NativeImage {
+  // 16x16 RGBA — draw a minimal "T" shape as a template image
+  const size = 16
+  const buf = Buffer.alloc(size * size * 4, 0)
+  const set = (x: number, y: number) => {
+    const i = (y * size + x) * 4
+    buf[i] = 0; buf[i + 1] = 0; buf[i + 2] = 0; buf[i + 3] = 255
+  }
+  // Horizontal bar (row 3, columns 2–13)
+  for (let x = 2; x <= 13; x++) set(x, 3)
+  // Vertical stem (rows 3–13, column 7–8)
+  for (let y = 3; y <= 13; y++) { set(7, y); set(8, y) }
+  const icon = nativeImage.createFromBuffer(buf, { width: size, height: size })
+  icon.setTemplateImage(true)
+  return icon
+}
 
 function hhmm(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
@@ -216,7 +236,7 @@ function startHttpServer(): void {
 }
 
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 800,
@@ -231,7 +251,18 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow!.show()
+  })
+
+  mainWindow.on('close', (e) => {
+    if (process.platform === 'darwin') {
+      e.preventDefault()
+      mainWindow!.hide()
+    }
+  })
+
+  mainWindow.on('closed', () => {
+    mainWindow = null
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -262,13 +293,32 @@ app.whenReady().then(() => {
     return agentCompleteTask(taskId, branchName, prUrl)
   })
 
+  tray = new Tray(createTrayIcon())
+  tray.setToolTip('Task Manager')
+  tray.on('click', () => {
+    if (!mainWindow) createWindow()
+    else { mainWindow.show(); mainWindow.focus() }
+  })
+
+  globalShortcut.register('CommandOrControl+Shift+Space', () => {
+    if (!mainWindow) createWindow()
+    mainWindow!.show()
+    mainWindow!.focus()
+    mainWindow!.webContents.send('quickcapture:show')
+  })
+
   startHttpServer()
   startScheduler()
   createWindow()
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (!mainWindow) createWindow()
+    else { mainWindow.show(); mainWindow.focus() }
   })
+})
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
 })
 
 app.on('window-all-closed', () => {

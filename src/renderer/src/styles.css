@@ -662,6 +662,27 @@ body {
   width: 500px;
 }
 
+.modal-compact {
+  width: 380px;
+}
+
+.form-group select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 8px 10px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.form-group select:focus {
+  border-color: hsl(220, 50%, 45%);
+}
+
 /* ── Recurrence toggle ───────────────────────────────── */
 .recurrence-toggle {
   display: flex;

@@ -8,5 +8,9 @@ contextBridge.exposeInMainWorld('store', {
   onChanged: (callback: () => void) => {
     ipcRenderer.on('store:changed', callback)
     return () => ipcRenderer.removeListener('store:changed', callback)
+  },
+  onQuickCapture: (callback: () => void) => {
+    ipcRenderer.on('quickcapture:show', callback)
+    return () => ipcRenderer.removeListener('quickcapture:show', callback)
   }
 })
