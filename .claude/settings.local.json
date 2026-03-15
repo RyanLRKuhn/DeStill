@@ -3,7 +3,8 @@
     "allow": [
       "Bash(curl -s http://127.0.0.1:7842/tasks)",
       "Bash(python3 -c \"import sys,json; [print\\(t[''id''], ''|'', t[''title''], ''|'', t.get\\(''status'',''none''\\)\\) for t in json.load\\(sys.stdin\\)]\")",
-      "Bash(curl -s -X POST http://127.0.0.1:7842/task/agent-complete -H \"Content-Type: application/json\" -d '{\"\"taskId\"\":\"\"IYAkml4Av4kEsDhtsZEqL\"\",\"\"branchName\"\":\"\"test/notification\"\",\"\"prUrl\"\":\"\"https://github.com/test/pull/1\"\"}')"
+      "Bash(curl -s -X POST http://127.0.0.1:7842/task/agent-complete -H \"Content-Type: application/json\" -d '{\"\"taskId\"\":\"\"IYAkml4Av4kEsDhtsZEqL\"\",\"\"branchName\"\":\"\"test/notification\"\",\"\"prUrl\"\":\"\"https://github.com/test/pull/1\"\"}')",
+      "Bash(git rm -r --cached dist/ out/ node_modules/ test_main.js test_main2.js)"
     ]
   }
 }
