@@ -48,9 +48,10 @@ interface AppData {
   scheduledTasks?: ScheduledTask[]
 }
 
-const store = new Store<{ appData: object }>({
+const store = new Store<{ appData: object; settings: { jiraToken?: string } }>({
   defaults: {
-    appData: { columns: [], tasks: [] }
+    appData: { columns: [], tasks: [] },
+    settings: {}
   }
 })
 
@@ -301,6 +302,14 @@ app.whenReady().then(() => {
     store.set('appData', data)
   })
 
+  ipcMain.handle('settings:get', () => {
+    return store.get('settings')
+  })
+
+  ipcMain.handle('settings:set', (_event, settings: { jiraToken?: string }) => {
+    store.set('settings', settings)
+  })
+
   ipcMain.handle('task:agent-complete', (_event, { taskId, branchName, prUrl }: { taskId: string; branchName: string; prUrl: string }) => {
     return agentCompleteTask(taskId, branchName, prUrl)
   })
@@ -341,12 +350,18 @@ app.whenReady().then(() => {
       return { success: false, error: String(err) }
     }
 
-    // Spawn claude
+    // Spawn claude — extend PATH so the binary is found when launched outside a shell
+    const settings = store.get('settings')
+    const spawnEnv: NodeJS.ProcessEnv = {
+      ...process.env,
+      PATH: `/usr/local/bin:/opt/homebrew/bin:${process.env.HOME ?? ''}/.local/bin:${process.env.PATH ?? '/usr/bin:/bin'}`,
+      ...(settings.jiraToken ? { JIRA_API_TOKEN: settings.jiraToken } : {})
+    }
     console.log(`[agent:spawn] spawning claude in ${worktreePath}`)
     const claudeProcess = spawn(
       'claude',
       ['--dangerously-skip-permissions', '-p', taskDescription],
-      { cwd: worktreePath, stdio: ['ignore', 'pipe', 'pipe'] }
+      { cwd: worktreePath, stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv }
     )
     console.log(`[agent:spawn] claude pid=${claudeProcess.pid}`)
 

@@ -11,6 +11,10 @@ declare global {
       onChanged: (callback: () => void) => () => void
       onQuickCapture: (callback: () => void) => () => void
     }
+    settings: {
+      get: () => Promise<{ jiraToken?: string }>
+      set: (settings: { jiraToken?: string }) => Promise<void>
+    }
     agent: {
       spawn: (params: {
         taskId: string
