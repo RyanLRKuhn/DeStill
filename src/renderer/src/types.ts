@@ -20,6 +20,7 @@ export interface Task {
   agentGenerated?: boolean
   agentId?: string
   dueDate?: string
+  prUrl?: string
 }
 
 export function getTaskType(task: Task): TaskType {

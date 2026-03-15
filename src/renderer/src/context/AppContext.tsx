@@ -12,8 +12,8 @@ type Action =
   | { type: 'ADD_COLUMN'; name: string }
   | { type: 'DELETE_COLUMN'; id: string }
   | { type: 'EDIT_COLUMN'; id: string; repoPath: string }
-  | { type: 'ADD_TASK'; columnId: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string }
-  | { type: 'EDIT_TASK'; id: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string }
+  | { type: 'ADD_TASK'; columnId: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string; prUrl?: string }
+  | { type: 'EDIT_TASK'; id: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string; prUrl?: string }
   | { type: 'SET_TASK_STATUS'; id: string; status: WorkStatus }
   | { type: 'COMPLETE_TASK'; id: string }
   | { type: 'UNCOMPLETE_TASK'; id: string }
@@ -66,6 +66,7 @@ function reducer(state: State, action: Action): State {
         completed: false,
         ...(action.ticket ? { ticket: action.ticket } : {}),
         ...(action.dueDate ? { dueDate: action.dueDate } : {}),
+        ...(action.prUrl ? { prUrl: action.prUrl } : {}),
         status: action.status ?? 'idle'
       }
       return { ...state, tasks: [...state.tasks, task] }
@@ -76,7 +77,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         tasks: state.tasks.map((t) =>
           t.id === action.id
-            ? { ...t, title: action.title, description: action.description, ticket: action.ticket, status: action.status ?? t.status ?? 'idle', dueDate: action.dueDate ?? undefined }
+            ? { ...t, title: action.title, description: action.description, ticket: action.ticket, status: action.status ?? t.status ?? 'idle', dueDate: action.dueDate ?? undefined, prUrl: action.prUrl ?? undefined }
             : t
         )
       }

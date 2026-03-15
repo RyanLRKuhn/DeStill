@@ -19,6 +19,7 @@ interface Task {
   status?: string
   agentGenerated?: boolean
   agentId?: string
+  prUrl?: string
 }
 
 type RecurrenceRule =
@@ -162,12 +163,13 @@ function agentCompleteTask(taskId: string, branchName: string, prUrl: string): {
   const reviewTask: Task = {
     id: randomUUID(),
     title: 'Review PR',
-    description: `Branch: ${branchName}\nPR: ${prUrl}`,
+    description: `Branch: ${branchName}`,
     columnId: task.columnId,
     createdAt: new Date().toISOString(),
     completed: false,
     status: 'idle',
-    agentGenerated: true
+    agentGenerated: true,
+    prUrl
   }
 
   const firstInColumn = updatedTasks.findIndex((t) => t.columnId === task.columnId && !t.completed)

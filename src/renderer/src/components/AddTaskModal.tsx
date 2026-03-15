@@ -13,6 +13,7 @@ export function AddTaskModal({ column, onClose }: Props) {
   const [description, setDescription] = useState('')
   const [ticket, setTicket] = useState('')
   const [dueDate, setDueDate] = useState('')
+  const [prUrl, setPrUrl] = useState('')
   const titleRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -28,7 +29,8 @@ export function AddTaskModal({ column, onClose }: Props) {
       title: title.trim(),
       description: description.trim(),
       ...(ticket.trim() ? { ticket: ticket.trim() } : {}),
-      ...(dueDate ? { dueDate } : {})
+      ...(dueDate ? { dueDate } : {}),
+      ...(prUrl.trim() ? { prUrl: prUrl.trim() } : {})
     })
     onClose()
   }
@@ -69,6 +71,16 @@ export function AddTaskModal({ column, onClose }: Props) {
               value={ticket}
               onChange={(e) => setTicket(e.target.value)}
               placeholder="e.g. PROJ-123 (optional)"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="task-pr">PR URL</label>
+            <input
+              id="task-pr"
+              type="url"
+              value={prUrl}
+              onChange={(e) => setPrUrl(e.target.value)}
+              placeholder="https://github.com/... (optional)"
             />
           </div>
           <div className="form-group">

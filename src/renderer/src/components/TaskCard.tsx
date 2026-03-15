@@ -34,18 +34,14 @@ export function TaskCard({ task }: Props) {
   }
 
   function handleAgentSpawn() {
-    if (task.status === 'available') {
-      const column = state.columns.find((c) => c.id === task.columnId)
-      const repoPath = column?.repoPath ?? ''
-      const workPrompt = state.prompts.work ?? ''
-      const ticketLine = task.ticket ? `Jira ticket: ${task.ticket}\n` : ''
-      const taskDescription = workPrompt
-        ? `${workPrompt}\n\n${ticketLine}${task.title}\n${task.description}`
-        : `${ticketLine}${task.title}\n${task.description}`
-      window.agent.spawn({ taskId: task.id, taskDescription, repoPath })
-    } else {
-      dispatch({ type: 'SET_TASK_STATUS', id: task.id, status: 'available' })
-    }
+    const column = state.columns.find((c) => c.id === task.columnId)
+    const repoPath = column?.repoPath ?? ''
+    const workPrompt = state.prompts.work ?? ''
+    const ticketLine = task.ticket ? `Jira ticket: ${task.ticket}\n` : ''
+    const taskDescription = workPrompt
+      ? `${workPrompt}\n\n${ticketLine}${task.title}\n${task.description}`
+      : `${ticketLine}${task.title}\n${task.description}`
+    window.agent.spawn({ taskId: task.id, taskDescription, repoPath })
   }
 
   return (
@@ -62,11 +58,11 @@ export function TaskCard({ task }: Props) {
               <button className="complete-btn" onClick={() => setEditing(true)} title="Edit task">
                 ✎
               </button>
-              {!task.completed && getTaskType(task) === 'work' && (
+              {!task.completed && getTaskType(task) === 'work' && task.status !== 'agent' && (
                 <button
-                  className={`complete-btn${task.status === 'available' ? ' available-active' : ''}`}
+                  className="complete-btn"
                   onClick={handleAgentSpawn}
-                  title={task.status === 'available' ? 'Spawn agent' : 'Make available for agent'}
+                  title="Spawn agent"
                 >
                   ⚡
                 </button>
@@ -93,7 +89,16 @@ export function TaskCard({ task }: Props) {
             </div>
           </div>
           <div className="task-meta">
-            {task.agentGenerated && <span className="task-type-badge">agent</span>}
+            {task.prUrl && (
+              <button
+                className="task-pr-link"
+                onClick={() => window.open(task.prUrl, '_blank')}
+                title="Open pull request"
+              >
+                Open PR ↗
+              </button>
+            )}
+            {task.agentGenerated && !task.prUrl && <span className="task-type-badge">agent</span>}
             {task.ticket && <span className="task-ticket">{task.ticket}</span>}
             {dueDateLabel && <span className={`task-due ${dueDateLabel.cls}`}>{dueDateLabel.label}</span>}
             <span className={`task-status task-status-${task.status ?? 'idle'}`}>

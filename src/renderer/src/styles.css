@@ -313,6 +313,18 @@ body {
   border-radius: 4px;
   padding: 1px 5px;
 }
+.task-pr-link {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  color: hsl(210, 80%, 65%);
+  background: hsl(210, 40%, 10%);
+  border: 1px solid hsl(210, 50%, 28%);
+  border-radius: 4px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+.task-pr-link:hover { background: hsl(210, 40%, 16%); border-color: hsl(210, 60%, 45%); }
 
 .task-ticket {
   display: inline-block;
