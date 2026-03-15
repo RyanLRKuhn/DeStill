@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
-import { Column } from '../types'
+import { Column, Repo } from '../types'
 
 interface Props {
   column: Column
@@ -10,10 +10,10 @@ interface Props {
 export function ColumnSettingsModal({ column, onClose }: Props) {
   const { dispatch } = useApp()
   const [repoPath, setRepoPath] = useState(column.repoPath ?? '')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [repos, setRepos] = useState<Repo[]>([])
 
   useEffect(() => {
-    inputRef.current?.focus()
+    window.settings.get().then((s) => setRepos(s.repos ?? []))
   }, [])
 
   function handleSubmit(e: React.FormEvent) {
@@ -35,15 +35,30 @@ export function ColumnSettingsModal({ column, onClose }: Props) {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="col-repo-path">Repository path</label>
-            <input
-              id="col-repo-path"
-              ref={inputRef}
-              type="text"
-              value={repoPath}
-              onChange={(e) => setRepoPath(e.target.value)}
-              placeholder="/absolute/path/to/repo"
-            />
+            <label htmlFor="col-repo-path">Repository</label>
+            {repos.length > 0 ? (
+              <select
+                id="col-repo-path"
+                value={repoPath}
+                onChange={(e) => setRepoPath(e.target.value)}
+              >
+                <option value="">— None —</option>
+                {repos.map((repo) => (
+                  <option key={repo.id} value={repo.path}>{repo.name}</option>
+                ))}
+              </select>
+            ) : (
+              <>
+                <input
+                  id="col-repo-path"
+                  type="text"
+                  value={repoPath}
+                  onChange={(e) => setRepoPath(e.target.value)}
+                  placeholder="/absolute/path/to/repo"
+                />
+                <p className="form-hint">Add repositories in Settings to select from a list.</p>
+              </>
+            )}
           </div>
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>

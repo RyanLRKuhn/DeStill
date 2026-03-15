@@ -17,7 +17,8 @@ contextBridge.exposeInMainWorld('store', {
 
 contextBridge.exposeInMainWorld('settings', {
   get: () => ipcRenderer.invoke('settings:get'),
-  set: (settings: { jiraToken?: string }) => ipcRenderer.invoke('settings:set', settings)
+  set: (settings: { jiraToken?: string; repos?: { id: string; name: string; path: string }[] }) =>
+    ipcRenderer.invoke('settings:set', settings)
 })
 
 contextBridge.exposeInMainWorld('agent', {

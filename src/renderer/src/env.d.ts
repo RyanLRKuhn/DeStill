@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-import { AppData } from './types'
+import { AppData, Repo } from './types'
 
 declare global {
   interface Window {
@@ -12,8 +12,8 @@ declare global {
       onQuickCapture: (callback: () => void) => () => void
     }
     settings: {
-      get: () => Promise<{ jiraToken?: string }>
-      set: (settings: { jiraToken?: string }) => Promise<void>
+      get: () => Promise<{ jiraToken?: string; repos?: Repo[] }>
+      set: (settings: { jiraToken?: string; repos?: Repo[] }) => Promise<void>
     }
     agent: {
       spawn: (params: {

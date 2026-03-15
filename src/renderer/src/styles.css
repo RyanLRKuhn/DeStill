@@ -518,6 +518,106 @@ body {
   justify-content: flex-end;
 }
 
+.add-column-repo-select {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 6px 8px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.add-column-repo-select:focus {
+  border-color: hsl(220, 50%, 45%);
+}
+
+/* ── Repo list (Settings) ────────────────────────────── */
+.repo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.repo-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+}
+
+.repo-list-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.repo-list-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.repo-list-item-path {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.repo-remove-btn {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  font-size: 11px;
+}
+
+.repo-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.repo-add-form input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 8px 10px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.repo-add-form input:focus {
+  border-color: hsl(220, 50%, 45%);
+}
+
+.repo-add-form .btn-secondary {
+  align-self: flex-end;
+}
+
+.form-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
 /* ── Modal ───────────────────────────────────────────── */
 .modal-backdrop {
   position: fixed;

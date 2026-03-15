@@ -9,7 +9,7 @@ interface State extends AppData {
 
 type Action =
   | { type: 'LOAD'; data: AppData }
-  | { type: 'ADD_COLUMN'; name: string }
+  | { type: 'ADD_COLUMN'; name: string; repoPath?: string }
   | { type: 'DELETE_COLUMN'; id: string }
   | { type: 'EDIT_COLUMN'; id: string; repoPath: string }
   | { type: 'ADD_TASK'; columnId: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string; prUrl?: string }
@@ -37,7 +37,7 @@ function reducer(state: State, action: Action): State {
       }
 
     case 'ADD_COLUMN': {
-      const column: Column = { id: nanoid(), name: action.name }
+      const column: Column = { id: nanoid(), name: action.name, repoPath: action.repoPath }
       return { ...state, columns: [...state.columns, column] }
     }
 

@@ -306,7 +306,7 @@ app.whenReady().then(() => {
     return store.get('settings')
   })
 
-  ipcMain.handle('settings:set', (_event, settings: { jiraToken?: string }) => {
+  ipcMain.handle('settings:set', (_event, settings: { jiraToken?: string; repos?: { id: string; name: string; path: string }[] }) => {
     store.set('settings', settings)
   })
 

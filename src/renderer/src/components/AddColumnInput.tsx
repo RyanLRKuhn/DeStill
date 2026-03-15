@@ -1,21 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { Repo } from '../types'
 
 export function AddColumnInput() {
   const { dispatch } = useApp()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
+  const [repoPath, setRepoPath] = useState('')
+  const [repos, setRepos] = useState<Repo[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (editing) inputRef.current?.focus()
+    if (editing) {
+      inputRef.current?.focus()
+      window.settings.get().then((s) => setRepos(s.repos ?? []))
+    }
   }, [editing])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) return
-    dispatch({ type: 'ADD_COLUMN', name: name.trim() })
+    dispatch({ type: 'ADD_COLUMN', name: name.trim(), repoPath: repoPath || undefined })
     setName('')
+    setRepoPath('')
     setEditing(false)
   }
 
@@ -44,6 +51,18 @@ export function AddColumnInput() {
           maxLength={60}
           className="add-column-input"
         />
+        {repos.length > 0 && (
+          <select
+            className="add-column-repo-select"
+            value={repoPath}
+            onChange={(e) => setRepoPath(e.target.value)}
+          >
+            <option value="">— No repo —</option>
+            {repos.map((repo) => (
+              <option key={repo.id} value={repo.path}>{repo.name}</option>
+            ))}
+          </select>
+        )}
         <div className="add-column-actions">
           <button type="submit" className="btn-primary" disabled={!name.trim()}>
             Add

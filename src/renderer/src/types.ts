@@ -1,3 +1,9 @@
+export interface Repo {
+  id: string
+  name: string
+  path: string
+}
+
 export interface Column {
   id: string
   name: string
