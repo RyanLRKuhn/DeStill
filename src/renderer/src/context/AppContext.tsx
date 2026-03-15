@@ -2,6 +2,9 @@ import React, { createContext, useContext, useReducer, useEffect, useCallback } 
 import { nanoid } from 'nanoid'
 import { AppData, Column, Task, TaskType, WorkStatus, ScheduledTask } from '../types'
 
+export const INBOX_COLUMN_ID = 'inbox'
+const INBOX_COLUMN: Column = { id: INBOX_COLUMN_ID, name: 'Inbox' }
+
 interface State extends AppData {
   showCompleted: boolean
   loaded: boolean
@@ -18,6 +21,7 @@ type Action =
   | { type: 'COMPLETE_TASK'; id: string }
   | { type: 'UNCOMPLETE_TASK'; id: string }
   | { type: 'REORDER_TASK'; id: string; targetId: string }
+  | { type: 'MOVE_TASK'; id: string; columnId: string }
   | { type: 'SET_PROMPT'; taskType: TaskType; prompt: string }
   | { type: 'DELETE_TASK'; id: string }
   | { type: 'ADD_SCHEDULED_TASK'; task: ScheduledTask }
@@ -28,13 +32,19 @@ const defaultPrompts: Record<TaskType, string> = { work: '', personal: '', agent
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'LOAD':
+    case 'LOAD': {
+      const hasInbox = action.data.columns.some((c) => c.id === INBOX_COLUMN_ID)
+      const columns = hasInbox
+        ? action.data.columns
+        : [INBOX_COLUMN, ...action.data.columns]
       return {
         ...state,
         ...action.data,
+        columns,
         prompts: { ...defaultPrompts, ...action.data.prompts },
         loaded: true
       }
+    }
 
     case 'ADD_COLUMN': {
       const column: Column = { id: nanoid(), name: action.name, repoPath: action.repoPath }
@@ -113,6 +123,13 @@ function reducer(state: State, action: Action): State {
       const targetIndex = without.findIndex((t) => t.id === action.targetId)
       without.splice(targetIndex, 0, dragged)
       return { ...state, tasks: without }
+    }
+
+    case 'MOVE_TASK': {
+      const task = state.tasks.find((t) => t.id === action.id)
+      if (!task) return state
+      const without = state.tasks.filter((t) => t.id !== action.id)
+      return { ...state, tasks: [...without, { ...task, columnId: action.columnId }] }
     }
 
     case 'SET_PROMPT':

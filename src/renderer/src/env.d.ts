@@ -12,8 +12,12 @@ declare global {
       onQuickCapture: (callback: () => void) => () => void
     }
     settings: {
-      get: () => Promise<{ jiraToken?: string; repos?: Repo[] }>
-      set: (settings: { jiraToken?: string; repos?: Repo[] }) => Promise<void>
+      get: () => Promise<{ jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: Repo[]; jiraEnabled?: boolean; jiraProjectKey?: string }>
+      set: (settings: { jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: Repo[]; jiraEnabled?: boolean; jiraProjectKey?: string }) => Promise<void>
+    }
+    jira: {
+      fetchProjects: (params: { baseUrl: string; email: string; token: string }) => Promise<{ projects?: { key: string; name: string }[]; error?: string }>
+      fetchStatuses: (params: { baseUrl: string; email: string; token: string; projectKey: string }) => Promise<{ statuses?: string[]; error?: string }>
     }
     agent: {
       spawn: (params: {

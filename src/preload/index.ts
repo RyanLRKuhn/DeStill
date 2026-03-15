@@ -17,8 +17,15 @@ contextBridge.exposeInMainWorld('store', {
 
 contextBridge.exposeInMainWorld('settings', {
   get: () => ipcRenderer.invoke('settings:get'),
-  set: (settings: { jiraToken?: string; repos?: { id: string; name: string; path: string }[] }) =>
+  set: (settings: { jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: { id: string; name: string; path: string }[]; jiraEnabled?: boolean }) =>
     ipcRenderer.invoke('settings:set', settings)
+})
+
+contextBridge.exposeInMainWorld('jira', {
+  fetchProjects: (params: { baseUrl: string; email: string; token: string }) =>
+    ipcRenderer.invoke('jira:fetch-projects', params),
+  fetchStatuses: (params: { baseUrl: string; email: string; token: string; projectKey: string }) =>
+    ipcRenderer.invoke('jira:fetch-statuses', params)
 })
 
 contextBridge.exposeInMainWorld('agent', {
