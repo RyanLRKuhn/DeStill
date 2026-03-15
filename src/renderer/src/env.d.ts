@@ -17,6 +17,7 @@ declare global {
         taskDescription: string
         repoPath: string
       }) => Promise<{ success: boolean; agentId?: string; error?: string }>
+      sendInput: (params: { taskId: string; text: string }) => Promise<{ success: boolean; error?: string }>
       onLog: (callback: (payload: { taskId: string; chunk: string }) => void) => () => void
       onExited: (callback: (payload: { taskId: string; code: number | null }) => void) => () => void
     }

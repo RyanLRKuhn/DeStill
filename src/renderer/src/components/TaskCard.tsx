@@ -38,9 +38,10 @@ export function TaskCard({ task }: Props) {
       const column = state.columns.find((c) => c.id === task.columnId)
       const repoPath = column?.repoPath ?? ''
       const workPrompt = state.prompts.work ?? ''
+      const ticketLine = task.ticket ? `Jira ticket: ${task.ticket}\n` : ''
       const taskDescription = workPrompt
-        ? `${workPrompt}\n\n${task.title}\n${task.description}`
-        : `${task.title}\n${task.description}`
+        ? `${workPrompt}\n\n${ticketLine}${task.title}\n${task.description}`
+        : `${ticketLine}${task.title}\n${task.description}`
       window.agent.spawn({ taskId: task.id, taskDescription, repoPath })
     } else {
       dispatch({ type: 'SET_TASK_STATUS', id: task.id, status: 'available' })

@@ -19,6 +19,9 @@ contextBridge.exposeInMainWorld('agent', {
   spawn: (params: { taskId: string; taskDescription: string; repoPath: string }) =>
     ipcRenderer.invoke('agent:spawn', params),
 
+  sendInput: (params: { taskId: string; text: string }) =>
+    ipcRenderer.invoke('agent:input', params),
+
   onLog: (callback: (payload: { taskId: string; chunk: string }) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, payload: { taskId: string; chunk: string }) =>
       callback(payload)

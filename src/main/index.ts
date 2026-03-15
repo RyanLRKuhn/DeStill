@@ -55,6 +55,7 @@ const store = new Store<{ appData: object }>({
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
+let isQuitting = false
 
 interface AgentEntry {
   agentId: string
@@ -264,7 +265,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('close', (e) => {
-    if (process.platform === 'darwin') {
+    if (process.platform === 'darwin' && !isQuitting) {
       e.preventDefault()
       mainWindow!.hide()
     }
@@ -300,6 +301,13 @@ app.whenReady().then(() => {
 
   ipcMain.handle('task:agent-complete', (_event, { taskId, branchName, prUrl }: { taskId: string; branchName: string; prUrl: string }) => {
     return agentCompleteTask(taskId, branchName, prUrl)
+  })
+
+  ipcMain.handle('agent:input', (_event, { taskId, text }: { taskId: string; text: string }) => {
+    const entry = activeAgents.get(taskId)
+    if (!entry) return { success: false, error: 'No active agent for task' }
+    entry.process.stdin?.write(text + '\n')
+    return { success: true }
   })
 
   ipcMain.handle('agent:spawn', async (_event, { taskId, taskDescription, repoPath }: { taskId: string; taskDescription: string; repoPath: string }) => {
@@ -388,6 +396,7 @@ app.whenReady().then(() => {
 })
 
 app.on('before-quit', (event) => {
+  isQuitting = true
   if (activeAgents.size === 0) return
 
   event.preventDefault()

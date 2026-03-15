@@ -921,3 +921,32 @@ body {
   border-radius: 4px;
   padding: 6px 8px;
 }
+.agent-input-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.agent-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 11px;
+  padding: 4px 8px;
+  outline: none;
+}
+.agent-input:focus { border-color: hsl(220, 50%, 45%); }
+.agent-input::placeholder { color: var(--text-muted); }
+.agent-input-send {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+.agent-input-send:hover:not(:disabled) { color: var(--text); border-color: hsl(220, 50%, 45%); }
+.agent-input-send:disabled { opacity: 0.3; cursor: not-allowed; }
