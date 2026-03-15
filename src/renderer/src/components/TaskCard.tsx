@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Task, getTaskType } from '../types'
+import { Task } from '../types'
 import { getDegradationColor, getDegradationBg } from '../utils/degradation'
 import { useApp } from '../context/AppContext'
 import { EditTaskModal } from './EditTaskModal'
@@ -33,8 +33,9 @@ export function TaskCard({ task }: Props) {
     dispatch({ type: 'UNCOMPLETE_TASK', id: task.id })
   }
 
+  const column = state.columns.find((c) => c.id === task.columnId)
+
   function handleAgentSpawn() {
-    const column = state.columns.find((c) => c.id === task.columnId)
     const repoPath = column?.repoPath ?? ''
     const workPrompt = state.prompts.work ?? ''
     const ticketLine = task.ticket ? `Jira ticket: ${task.ticket}\n` : ''
@@ -58,7 +59,7 @@ export function TaskCard({ task }: Props) {
               <button className="complete-btn" onClick={() => setEditing(true)} title="Edit task">
                 ✎
               </button>
-              {!task.completed && getTaskType(task) === 'work' && task.status !== 'agent' && (
+              {!task.completed && column?.repoPath && task.status !== 'agent' && (
                 <button
                   className="complete-btn"
                   onClick={handleAgentSpawn}

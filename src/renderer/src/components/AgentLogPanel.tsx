@@ -62,7 +62,11 @@ export function AgentLogPanel() {
 
   // Show panel as soon as any task has agent status, even before stdout arrives
   const agentTasks = state.tasks.filter((t) => t.status === 'agent')
-  const allTaskIds = new Set([...agentTasks.map((t) => t.id), ...Object.keys(logs)])
+  const activeTaskIds = new Set(state.tasks.filter((t) => !t.completed).map((t) => t.id))
+  const allTaskIds = new Set([
+    ...agentTasks.map((t) => t.id),
+    ...Object.keys(logs).filter((id) => activeTaskIds.has(id))
+  ])
 
   // Open panel automatically when new agent tasks appear
   useEffect(() => {
