@@ -11,8 +11,8 @@ interface Props {
 export function TaskCard({ task }: Props) {
   const { state, dispatch } = useApp()
   const [editing, setEditing] = useState(false)
-  const accentColor = task.completed ? 'hsl(0, 0%, 40%)' : getDegradationColor(task.createdAt)
-  const bgColor = task.completed ? 'hsl(0, 0%, 12%)' : getDegradationBg(task.createdAt)
+  const accentColor = task.completed ? 'hsl(0, 0%, 40%)' : getDegradationColor(task.createdAt, task.dueDate)
+  const bgColor = task.completed ? 'hsl(0, 0%, 12%)' : getDegradationBg(task.createdAt, task.dueDate)
 
   const dueDateLabel = (() => {
     if (!task.dueDate) return null
