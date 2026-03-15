@@ -16,12 +16,13 @@ export function TaskCard({ task }: Props) {
 
   const dueDateLabel = (() => {
     if (!task.dueDate) return null
-    const today = new Date(); today.setHours(0, 0, 0, 0)
-    const due = new Date(task.dueDate + 'T00:00:00')
-    const diffDays = Math.round((due.getTime() - today.getTime()) / 86400000)
-    const label = due.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    if (diffDays < 0) return { label, cls: 'due-overdue' }
-    if (diffDays <= 1) return { label, cls: 'due-soon' }
+    // Support legacy date-only values and new datetime-local values
+    const due = new Date(task.dueDate.includes('T') ? task.dueDate : task.dueDate + 'T00:00:00')
+    const now = new Date()
+    const diffMs = due.getTime() - now.getTime()
+    const label = due.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+    if (diffMs < 0) return { label, cls: 'due-overdue' }
+    if (diffMs < 24 * 60 * 60 * 1000) return { label, cls: 'due-soon' }
     return { label, cls: 'due-normal' }
   })()
 

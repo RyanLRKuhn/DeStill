@@ -128,7 +128,9 @@ function startScheduler(): void {
         createdAt: now.toISOString(),
         completed: false,
         status: 'idle',
-        ...(s.ticket ? { ticket: s.ticket } : {})
+        ...(s.ticket ? { ticket: s.ticket } : {}),
+        ...(s.dueDate ? { dueDate: s.dueDate } : {}),
+        ...(s.prUrl ? { prUrl: s.prUrl } : {})
       }
       newTasks.push(task)
       new Notification({

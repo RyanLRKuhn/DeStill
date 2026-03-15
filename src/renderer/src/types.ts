@@ -47,6 +47,8 @@ export interface ScheduledTask {
   title: string
   description: string
   ticket?: string
+  dueDate?: string
+  prUrl?: string
   timeOfDay: string
   recurrence: RecurrenceRule
   lastFiredAt?: string
