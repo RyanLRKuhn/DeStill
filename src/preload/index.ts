@@ -25,7 +25,8 @@ contextBridge.exposeInMainWorld('jira', {
   fetchProjects: (params: { baseUrl: string; email: string; token: string }) =>
     ipcRenderer.invoke('jira:fetch-projects', params),
   fetchStatuses: (params: { baseUrl: string; email: string; token: string; projectKey: string }) =>
-    ipcRenderer.invoke('jira:fetch-statuses', params)
+    ipcRenderer.invoke('jira:fetch-statuses', params),
+  resync: () => ipcRenderer.invoke('jira:resync')
 })
 
 contextBridge.exposeInMainWorld('agent', {

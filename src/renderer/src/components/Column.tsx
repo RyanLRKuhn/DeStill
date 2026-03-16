@@ -21,8 +21,15 @@ export function Column({ column }: Props) {
   const [isDragOverColumn, setIsDragOverColumn] = useState(false)
 
   const isInbox = column.id === INBOX_COLUMN_ID
+  const [syncing, setSyncing] = useState(false)
   const tasks = state.tasks.filter((t) => t.columnId === column.id && !t.completed)
   const waiting = tasks.length > 0 && getTaskType(tasks[0]) === 'personal'
+
+  async function handleResync() {
+    setSyncing(true)
+    await window.jira.resync()
+    setSyncing(false)
+  }
 
   function handleDelete() {
     if (confirmDelete) {
@@ -124,6 +131,11 @@ export function Column({ column }: Props) {
       <div className="column-footer">
         <button className="add-task-btn" onClick={() => setShowModal(true)}>+ Add task</button>
         <button className="schedule-task-btn" onClick={() => setShowScheduleModal(true)} title="Schedule task">⏱</button>
+        {isInbox && (
+          <button className="schedule-task-btn" onClick={handleResync} disabled={syncing} title="Resync Jira">
+            {syncing ? '…' : '↻'}
+          </button>
+        )}
       </div>
 
       {showModal && <AddTaskModal column={column} onClose={() => setShowModal(false)} />}

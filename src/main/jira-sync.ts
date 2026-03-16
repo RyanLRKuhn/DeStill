@@ -1,6 +1,6 @@
 import { createServer, get as httpGet } from "http";
 import { request as httpsRequest } from "https";
-import { execSync, spawn as spawnProcess } from "child_process";
+import { spawn as spawnProcess } from "child_process";
 import { createHmac, timingSafeEqual, randomUUID } from "crypto";
 
 export interface JiraSettings {
@@ -9,6 +9,7 @@ export interface JiraSettings {
   jiraBaseUrl?: string;
   webhookSecret?: string;
   jiraEmail?: string;
+  jiraToken?: string;
   jiraStatusFilters?: string[]; // status names selected in Jira Automation settings
   jiraEnabled?: boolean;
   jiraProjectKey?: string;
@@ -321,49 +322,57 @@ export async function initialJiraSync(
 
   console.log("[jira] Running initial Jira sync...");
   try {
-    const { jiraStatusFilters = [] } = settings;
+    console.log("settings:", {
+      jiraBaseUrl,
+      jiraStatusFilters: settings.jiraStatusFilters,
+      jiraEmail: settings.jiraEmail,
+      jiraToken: settings.jiraToken ? "******" : undefined,
+    });
+    const { jiraStatusFilters = [], jiraEmail, jiraToken } = settings;
 
+    console.log("jiraStatusFilters:", jiraStatusFilters);
     if (jiraStatusFilters.length === 0) {
-      console.warn("[jira] No status filters configured — skipping initial sync");
+      console.warn(
+        "[jira] No status filters configured — skipping initial sync",
+      );
       return;
     }
 
-    const statusFlags = jiraStatusFilters.map((s) => `-s"${s}"`).join(" ");
-    const output = execSync(
-      `jira issue list -a$(jira me) ${statusFlags} --plain --columns key,status,summary --no-headers`,
-      {
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          PATH: `/usr/local/bin:/opt/homebrew/bin:${process.env.HOME ?? ""}/.local/bin:${process.env.PATH ?? "/usr/bin:/bin"}`,
-        },
-      },
+    console.log("jiraEmail:", jiraEmail);
+    console.log("jiraToken:", jiraToken ? "******" : undefined);
+    if (!jiraEmail || !jiraToken) {
+      console.warn(
+        "[jira] jiraEmail or jiraToken not configured — skipping initial sync",
+      );
+      return;
+    }
+
+    const auth = Buffer.from(`${jiraEmail}:${jiraToken}`).toString("base64");
+    console.log("auth:", auth ? "******" : undefined);
+    const statusList = jiraStatusFilters.map((s) => `"${s}"`).join(", ");
+    const jql = encodeURIComponent(
+      `assignee = currentUser() AND status in (${statusList})`,
     );
+    const body = await jiraGet(
+      `${jiraBaseUrl.replace(/\/+$/, "")}/rest/api/3/search/jql?jql=${jql}&fields=key,status&maxResults=100`,
+      auth,
+    );
+    console.log("[jira] Initial sync response:", body);
 
-    const lines = output
-      .trim()
-      .split("\n")
-      .filter((l) => l.trim());
-    console.log(`[jira] Found ${lines.length} assigned tickets`);
+    const json = JSON.parse(body) as { issues?: { key: string }[] };
+    const issues = json.issues ?? [];
+    console.log(`[jira] Found ${issues.length} assigned tickets`);
 
-    for (const line of lines) {
-      const [key] = line.split("\t");
-      console.log(`[jira] ticket=${key?.trim()}`);
-      if (!key?.trim()) continue;
+    for (const issue of issues) {
+      console.log(`[jira] ticket=${issue.key}`);
       createTaskIfNotExists(
         store,
         notifyRenderer,
-        `${jiraBaseUrl}/browse/${key.trim()}`,
+        `${jiraBaseUrl}/browse/${issue.key}`,
       );
     }
   } catch (err) {
-    const stderr: string =
-      (err as { stderr?: Buffer | string }).stderr?.toString() ?? "";
-    if (stderr.includes("No result found")) {
-      console.log("[jira] No assigned tickets found in the configured status");
-    } else {
-      console.error("[jira] Initial sync failed:", err);
-    }
+    console.error("[jira] Initial sync failed:", err);
   }
 }
 
@@ -377,7 +386,9 @@ function jiraGet(url: string, auth: string): Promise<string> {
       },
       (res) => {
         let body = "";
-        res.on("data", (chunk: Buffer) => { body += chunk; });
+        res.on("data", (chunk: Buffer) => {
+          body += chunk;
+        });
         res.on("end", () => resolve(body));
       },
     );
@@ -393,7 +404,10 @@ export async function fetchJiraProjects(
 ): Promise<{ key: string; name: string }[]> {
   const auth = Buffer.from(`${email}:${token}`).toString("base64");
   const base = baseUrl.replace(/\/+$/, "");
-  const body = await jiraGet(`${base}/rest/api/3/project/search?maxResults=100&orderBy=name`, auth);
+  const body = await jiraGet(
+    `${base}/rest/api/3/project/search?maxResults=100&orderBy=name`,
+    auth,
+  );
   console.log("[jira] Fetched projects from Jira:", body);
   const json = JSON.parse(body) as { values: { key: string; name: string }[] };
   return json.values.map((p) => ({ key: p.key, name: p.name }));
@@ -407,7 +421,10 @@ export async function fetchJiraStatuses(
 ): Promise<string[]> {
   const auth = Buffer.from(`${email}:${token}`).toString("base64");
   const base = baseUrl.replace(/\/+$/, "");
-  const body = await jiraGet(`${base}/rest/api/3/project/${encodeURIComponent(projectKey)}/statuses`, auth);
+  const body = await jiraGet(
+    `${base}/rest/api/3/project/${encodeURIComponent(projectKey)}/statuses`,
+    auth,
+  );
   console.log("[jira] Fetched statuses from Jira:", body);
   const issueTypes = JSON.parse(body) as { statuses: { name: string }[] }[];
   const seen = new Set<string>();

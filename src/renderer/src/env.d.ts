@@ -18,6 +18,7 @@ declare global {
     jira: {
       fetchProjects: (params: { baseUrl: string; email: string; token: string }) => Promise<{ projects?: { key: string; name: string }[]; error?: string }>
       fetchStatuses: (params: { baseUrl: string; email: string; token: string; projectKey: string }) => Promise<{ statuses?: string[]; error?: string }>
+      resync: () => Promise<{ success: boolean; error?: string }>
     }
     agent: {
       spawn: (params: {

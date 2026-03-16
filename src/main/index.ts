@@ -13,7 +13,7 @@ import { randomUUID } from "crypto";
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { spawn, execSync, ChildProcess } from "child_process";
 import Store from "electron-store";
-import { initJiraSync, fetchJiraStatuses, fetchJiraProjects } from "./jira-sync";
+import { initJiraSync, fetchJiraStatuses, fetchJiraProjects, initialJiraSync } from "./jira-sync";
 
 const PORT = 7842;
 
@@ -395,6 +395,15 @@ app.whenReady().then(() => {
 
   ipcMain.handle("settings:set", (_event, settings: Settings) => {
     store.set("settings", { ...store.get("settings"), ...settings });
+  });
+
+  ipcMain.handle("jira:resync", async () => {
+    try {
+      await initialJiraSync(store, notifyRenderer);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
   });
 
   ipcMain.handle(
