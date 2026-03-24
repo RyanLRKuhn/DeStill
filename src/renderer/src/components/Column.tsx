@@ -27,7 +27,7 @@ export function Column({ column }: Props) {
 
   async function handleResync() {
     setSyncing(true)
-    await window.jira.resync()
+    await Promise.all([window.jira.resync(), window.github.resync()])
     setSyncing(false)
   }
 

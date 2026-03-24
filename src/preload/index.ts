@@ -21,6 +21,12 @@ contextBridge.exposeInMainWorld('settings', {
     ipcRenderer.invoke('settings:set', settings)
 })
 
+contextBridge.exposeInMainWorld('github', {
+  resync: () => ipcRenderer.invoke('github:resync'),
+  test: (params: { token: string; username: string }) => ipcRenderer.invoke('github:test', params),
+  debug: (params: { token: string; username: string; repos: string[] }) => ipcRenderer.invoke('github:debug', params)
+})
+
 contextBridge.exposeInMainWorld('jira', {
   fetchProjects: (params: { baseUrl: string; email: string; token: string }) =>
     ipcRenderer.invoke('jira:fetch-projects', params),

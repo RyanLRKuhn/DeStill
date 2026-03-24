@@ -10,6 +10,13 @@ export function SettingsModal({ onClose }: Props) {
   const [jiraToken, setJiraToken] = useState('')
   const [jiraEmail, setJiraEmail] = useState('')
   const [jiraBaseUrl, setJiraBaseUrl] = useState('')
+  const [githubToken, setGithubToken] = useState('')
+  const [githubUsername, setGithubUsername] = useState('')
+  const [githubTestStatus, setGithubTestStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle')
+  const [githubTestError, setGithubTestError] = useState<string | null>(null)
+  const [githubDebugRepos, setGithubDebugRepos] = useState('companycam/companycam-mobile, companycam/company-cam-API')
+  const [githubDebugOutput, setGithubDebugOutput] = useState<string | null>(null)
+  const [githubDebugging, setGithubDebugging] = useState(false)
   const [repos, setRepos] = useState<Repo[]>([])
   const [newRepoName, setNewRepoName] = useState('')
   const [newRepoPath, setNewRepoPath] = useState('')
@@ -36,6 +43,8 @@ export function SettingsModal({ onClose }: Props) {
       setJiraEnabled(s.jiraEnabled ?? false)
       setJiraProjectKey(s.jiraProjectKey ?? '')
       setRepos(s.repos ?? [])
+      setGithubToken(s.githubToken ?? '')
+      setGithubUsername(s.githubUsername ?? '')
 
       console.log('[settings] loaded Jira settings:', { token: !!token, email, baseUrl })
       if (token.trim() && email.trim() && baseUrl.trim()) {
@@ -95,10 +104,35 @@ export function SettingsModal({ onClose }: Props) {
       jiraStatusFilters,
       jiraEnabled,
       jiraProjectKey: jiraProjectKey || undefined,
-      repos
+      repos,
+      githubToken: githubToken.trim() || undefined,
+      githubUsername: githubUsername.trim() || undefined,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  async function handleDebugGithub() {
+    if (!githubToken.trim() || !githubUsername.trim()) return
+    setGithubDebugging(true)
+    setGithubDebugOutput(null)
+    const repoList = githubDebugRepos.split(',').map((r) => r.trim()).filter(Boolean)
+    const result = await window.github.debug({ token: githubToken.trim(), username: githubUsername.trim(), repos: repoList })
+    setGithubDebugOutput(result.lines.join('\n'))
+    setGithubDebugging(false)
+  }
+
+  async function handleTestGithub() {
+    if (!githubToken.trim() || !githubUsername.trim()) return
+    setGithubTestStatus('testing')
+    setGithubTestError(null)
+    const result = await window.github.test({ token: githubToken.trim(), username: githubUsername.trim() })
+    if (result.ok) {
+      setGithubTestStatus('ok')
+    } else {
+      setGithubTestStatus('error')
+      setGithubTestError(result.error ?? 'Unknown error')
+    }
   }
 
   function toggleStatus(name: string) {
@@ -169,6 +203,66 @@ export function SettingsModal({ onClose }: Props) {
               placeholder="https://your-company.atlassian.net"
               autoComplete="off"
             />
+          </div>
+
+          <div className="settings-section">
+            <h3>GitHub</h3>
+            <div className="form-group">
+              <label htmlFor="github-token">GitHub Personal Access Token</label>
+              <input
+                id="github-token"
+                type="password"
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                placeholder="ghp_..."
+                autoComplete="off"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="github-username">GitHub Username</label>
+              <input
+                id="github-username"
+                type="text"
+                value={githubUsername}
+                onChange={(e) => { setGithubUsername(e.target.value); setGithubTestStatus('idle') }}
+                placeholder="your-github-username"
+                autoComplete="off"
+              />
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={handleTestGithub}
+              disabled={githubTestStatus === 'testing' || !githubToken.trim() || !githubUsername.trim()}
+            >
+              {githubTestStatus === 'testing' ? 'Testing…' : githubTestStatus === 'ok' ? 'Connected ✓' : 'Test connection'}
+            </button>
+            {githubTestStatus === 'error' && (
+              <p className="settings-error">{githubTestError}</p>
+            )}
+            <div className="form-group" style={{ marginTop: '12px' }}>
+              <label htmlFor="github-debug-repos">Debug: repos to check access (comma-separated, org/repo)</label>
+              <input
+                id="github-debug-repos"
+                type="text"
+                value={githubDebugRepos}
+                onChange={(e) => setGithubDebugRepos(e.target.value)}
+                placeholder="org/repo-one, org/repo-two"
+              />
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={handleDebugGithub}
+              disabled={githubDebugging || !githubToken.trim() || !githubUsername.trim()}
+            >
+              {githubDebugging ? 'Running…' : 'Debug sync'}
+            </button>
+            {githubDebugOutput && (
+              <pre style={{ marginTop: '8px', fontSize: '11px', background: '#1a1a2e', padding: '8px', borderRadius: '4px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                {githubDebugOutput}
+              </pre>
+            )}
           </div>
 
           <div className="form-group">

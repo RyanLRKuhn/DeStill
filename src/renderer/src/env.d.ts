@@ -12,8 +12,13 @@ declare global {
       onQuickCapture: (callback: () => void) => () => void
     }
     settings: {
-      get: () => Promise<{ jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: Repo[]; jiraEnabled?: boolean; jiraProjectKey?: string }>
-      set: (settings: { jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: Repo[]; jiraEnabled?: boolean; jiraProjectKey?: string }) => Promise<void>
+      get: () => Promise<{ jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: Repo[]; jiraEnabled?: boolean; jiraProjectKey?: string; githubToken?: string; githubUsername?: string }>
+      set: (settings: { jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: Repo[]; jiraEnabled?: boolean; jiraProjectKey?: string; githubToken?: string; githubUsername?: string }) => Promise<void>
+    }
+    github: {
+      resync: () => Promise<{ success: boolean; created?: number; error?: string }>
+      test: (params: { token: string; username: string }) => Promise<{ ok: boolean; login?: string; error?: string }>
+      debug: (params: { token: string; username: string; repos: string[] }) => Promise<{ lines: string[] }>
     }
     jira: {
       fetchProjects: (params: { baseUrl: string; email: string; token: string }) => Promise<{ projects?: { key: string; name: string }[]; error?: string }>

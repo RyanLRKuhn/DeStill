@@ -14,6 +14,7 @@ import { createServer, IncomingMessage, ServerResponse } from "http";
 import { spawn, execSync, ChildProcess } from "child_process";
 import Store from "electron-store";
 import { initJiraSync, fetchJiraStatuses, fetchJiraProjects, initialJiraSync } from "./jira-sync";
+import { syncGithubPrReviews, testGithubCredentials, debugGithubSync } from "./github-sync";
 
 const PORT = 7842;
 
@@ -71,6 +72,9 @@ interface Settings {
   jiraStatusFilters?: string[];
   jiraEnabled?: boolean;
   jiraProjectKey?: string;
+  githubToken?: string;
+  githubUsername?: string;
+  lastGithubSyncAt?: string;
 }
 
 const INBOX_COLUMN_ID = "inbox";
@@ -303,6 +307,29 @@ function startHttpServer(): void {
       return send(res, 200, tasks);
     }
 
+    // GET /tasks/completed?from=YYYY-MM-DD&to=YYYY-MM-DD — list completed tasks in date range
+    if (method === "GET" && url.startsWith("/tasks/completed")) {
+      const params = new URL(url, `http://127.0.0.1:${PORT}`).searchParams;
+      const from = params.get("from") ? new Date(params.get("from")!) : null;
+      const to = params.get("to") ? new Date(params.get("to")!) : null;
+      if (to) to.setHours(23, 59, 59, 999);
+
+      const data = store.get("appData") as AppData;
+      const tasks = data.tasks
+        .filter((t) => {
+          if (!t.completed || !t.completedAt) return false;
+          const completedAt = new Date(t.completedAt);
+          if (from && completedAt < from) return false;
+          if (to && completedAt > to) return false;
+          return true;
+        })
+        .map((t) => ({
+          ...t,
+          columnName: data.columns.find((c) => c.id === t.columnId)?.name ?? null,
+        }));
+      return send(res, 200, tasks);
+    }
+
     // POST /task/agent-complete — complete a task and create a Review PR task
     if (method === "POST" && url === "/task/agent-complete") {
       try {
@@ -381,6 +408,9 @@ app.whenReady().then(() => {
   app.setName("Task Manager");
   app.setAppUserModelId("com.personal.taskmanager");
 
+  // TEMP: reset lastGithubSyncAt so next sync backfills 7 days
+  store.set("settings", { ...store.get("settings"), lastGithubSyncAt: undefined });
+
   ipcMain.handle("store:read", () => {
     return store.get("appData");
   });
@@ -401,6 +431,23 @@ app.whenReady().then(() => {
     try {
       await initialJiraSync(store, notifyRenderer);
       return { success: true };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  });
+
+  ipcMain.handle("github:debug", async (_event, { token, username, repos }: { token: string; username: string; repos: string[] }) => {
+    return debugGithubSync(token, username, repos);
+  });
+
+  ipcMain.handle("github:test", async (_event, { token, username }: { token: string; username: string }) => {
+    return testGithubCredentials(token, username);
+  });
+
+  ipcMain.handle("github:resync", async () => {
+    try {
+      const result = await syncGithubPrReviews(store, notifyRenderer);
+      return { success: true, ...result };
     } catch (err) {
       return { success: false, error: String(err) };
     }
