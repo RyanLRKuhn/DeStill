@@ -17,6 +17,7 @@ export function AddTaskModal({ column, onClose }: Props) {
       columnId: column.id,
       title: data.title,
       description: data.description,
+      taskType: data.taskType,
       ...(data.ticket ? { ticket: data.ticket } : {}),
       ...(data.dueDate ? { dueDate: data.dueDate } : {}),
       ...(data.prUrl ? { prUrl: data.prUrl } : {})

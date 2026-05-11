@@ -23,6 +23,7 @@ function normalizeDueDate(d: string): string {
 export interface TaskFormData {
   title: string
   description: string
+  taskType: 'work' | 'personal' | 'freelance'
   ticket?: string
   dueDate?: string
   prUrl?: string
@@ -55,6 +56,7 @@ export function CreateTaskForm(props: Props) {
 
   const [title, setTitle] = useState(initValues?.title ?? '')
   const [description, setDescription] = useState(initValues?.description ?? '')
+  const [taskType, setTaskType] = useState<'work' | 'personal' | 'freelance' | ''>(initValues?.taskType ?? '')
   const [ticket, setTicket] = useState(initValues?.ticket ?? '')
   const [dueDate, setDueDate] = useState(normalizeDueDate(initValues?.dueDate ?? ''))
   const [prUrl, setPrUrl] = useState(initValues?.prUrl ?? '')
@@ -81,9 +83,11 @@ export function CreateTaskForm(props: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!taskType) return
     const base: TaskFormData = {
       title: title.trim(),
       description: description.trim(),
+      taskType,
       ticket: ticket.trim() || undefined,
       dueDate: dueDate || undefined,
       prUrl: prUrl.trim() || undefined,
@@ -99,7 +103,7 @@ export function CreateTaskForm(props: Props) {
     }
   }
 
-  const isValid = !!title.trim() && (props.variant !== 'schedule' || !!timeOfDay)
+  const isValid = !!title.trim() && (props.variant === 'schedule' || !!taskType) && (props.variant !== 'schedule' || !!timeOfDay)
 
   return (
     <form onSubmit={handleSubmit}>
@@ -115,6 +119,23 @@ export function CreateTaskForm(props: Props) {
           maxLength={120}
         />
       </div>
+      {props.variant !== 'schedule' && (
+        <div className="form-group">
+          <label>Type</label>
+          <div className="status-toggle">
+            {(['work', 'personal', 'freelance'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`status-option ${taskType === t ? 'active' : ''}`}
+                onClick={() => setTaskType(t)}
+              >
+                {t === 'work' ? 'Work' : t === 'personal' ? 'Personal' : 'Freelance'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="form-group">
         <label htmlFor="task-ticket">Jira Ticket</label>
         <input

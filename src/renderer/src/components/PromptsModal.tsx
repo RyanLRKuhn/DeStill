@@ -10,11 +10,12 @@ export function PromptsModal({ onClose }: Props) {
   const { state, dispatch } = useApp()
   const [work, setWork] = useState(state.prompts.work)
   const [personal, setPersonal] = useState(state.prompts.personal)
+  const [freelance, setFreelance] = useState(state.prompts.freelance)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const types: TaskType[] = ['work', 'personal']
-    const values = { work, personal }
+    const types: TaskType[] = ['work', 'personal', 'freelance']
+    const values = { work, personal, freelance }
     types.forEach((t) => {
       if (values[t] !== state.prompts[t]) {
         dispatch({ type: 'SET_PROMPT', taskType: t, prompt: values[t] })
@@ -38,7 +39,7 @@ export function PromptsModal({ onClose }: Props) {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="prompt-work">Work tasks (has Jira ticket)</label>
+            <label htmlFor="prompt-work">Work tasks</label>
             <textarea
               id="prompt-work"
               value={work}
@@ -48,7 +49,17 @@ export function PromptsModal({ onClose }: Props) {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="prompt-personal">Personal tasks (no Jira ticket)</label>
+            <label htmlFor="prompt-freelance">Freelance tasks</label>
+            <textarea
+              id="prompt-freelance"
+              value={freelance}
+              onChange={(e) => setFreelance(e.target.value)}
+              placeholder="Prompt applied to all freelance tasks..."
+              rows={4}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="prompt-personal">Personal tasks</label>
             <textarea
               id="prompt-personal"
               value={personal}

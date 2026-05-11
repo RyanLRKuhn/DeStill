@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Task } from '../types'
+import { Task, getTaskType } from '../types'
 import { getDegradationColor, getDegradationBg } from '../utils/degradation'
 import { useApp } from '../context/AppContext'
 import { EditTaskModal } from './EditTaskModal'
@@ -36,12 +36,14 @@ export function TaskCard({ task }: Props) {
 
   const column = state.columns.find((c) => c.id === task.columnId)
 
+  const taskType = getTaskType(task)
+
   function handleAgentSpawn() {
     const repoPath = column?.repoPath ?? ''
-    const workPrompt = state.prompts.work ?? ''
+    const prompt = state.prompts[taskType] ?? ''
     const ticketLine = task.ticket ? `Jira ticket: ${task.ticket}\n` : ''
-    const taskDescription = workPrompt
-      ? `${workPrompt}\n\n${ticketLine}${task.title}\n${task.description}`
+    const taskDescription = prompt
+      ? `${prompt}\n\n${ticketLine}${task.title}\n${task.description}`
       : `${ticketLine}${task.title}\n${task.description}`
     window.agent.spawn({ taskId: task.id, taskDescription, repoPath })
   }
@@ -60,7 +62,7 @@ export function TaskCard({ task }: Props) {
               <button className="complete-btn" onClick={() => setEditing(true)} title="Edit task">
                 ✎
               </button>
-              {!task.completed && column?.repoPath && task.status !== 'agent' && (
+              {!task.completed && column?.repoPath && task.status !== 'agent' && taskType !== 'personal' && (
                 <button
                   className="complete-btn"
                   onClick={handleAgentSpawn}

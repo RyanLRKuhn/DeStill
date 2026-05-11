@@ -10,7 +10,7 @@ export interface Column {
   repoPath?: string
 }
 
-export type TaskType = 'work' | 'personal' | 'agent_generated'
+export type TaskType = 'work' | 'personal' | 'freelance' | 'agent_generated'
 export type WorkStatus = 'idle' | 'in_progress' | 'agent' | 'available'
 
 export interface Task {
@@ -22,6 +22,7 @@ export interface Task {
   completed: boolean
   completedAt?: string
   ticket?: string
+  taskType?: 'work' | 'personal' | 'freelance'
   status?: WorkStatus
   agentGenerated?: boolean
   agentId?: string
@@ -31,6 +32,7 @@ export interface Task {
 
 export function getTaskType(task: Task): TaskType {
   if (task.agentGenerated) return 'agent_generated'
+  if (task.taskType) return task.taskType
   return task.ticket ? 'work' : 'personal'
 }
 

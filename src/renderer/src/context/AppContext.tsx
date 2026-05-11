@@ -15,8 +15,8 @@ type Action =
   | { type: 'ADD_COLUMN'; name: string; repoPath?: string }
   | { type: 'DELETE_COLUMN'; id: string }
   | { type: 'EDIT_COLUMN'; id: string; repoPath: string }
-  | { type: 'ADD_TASK'; columnId: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string; prUrl?: string }
-  | { type: 'EDIT_TASK'; id: string; title: string; description: string; ticket?: string; status?: WorkStatus; dueDate?: string; prUrl?: string }
+  | { type: 'ADD_TASK'; columnId: string; title: string; description: string; ticket?: string; taskType?: 'work' | 'personal' | 'freelance'; status?: WorkStatus; dueDate?: string; prUrl?: string }
+  | { type: 'EDIT_TASK'; id: string; title: string; description: string; ticket?: string; taskType?: 'work' | 'personal' | 'freelance'; status?: WorkStatus; dueDate?: string; prUrl?: string }
   | { type: 'SET_TASK_STATUS'; id: string; status: WorkStatus }
   | { type: 'COMPLETE_TASK'; id: string }
   | { type: 'UNCOMPLETE_TASK'; id: string }
@@ -28,7 +28,7 @@ type Action =
   | { type: 'DELETE_SCHEDULED_TASK'; id: string }
   | { type: 'TOGGLE_COMPLETED' }
 
-const defaultPrompts: Record<TaskType, string> = { work: '', personal: '', agent_generated: '' }
+const defaultPrompts: Record<TaskType, string> = { work: '', personal: '', freelance: '', agent_generated: '' }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -75,6 +75,7 @@ function reducer(state: State, action: Action): State {
         createdAt: new Date().toISOString(),
         completed: false,
         ...(action.ticket ? { ticket: action.ticket } : {}),
+        ...(action.taskType ? { taskType: action.taskType } : {}),
         ...(action.dueDate ? { dueDate: action.dueDate } : {}),
         ...(action.prUrl ? { prUrl: action.prUrl } : {}),
         status: action.status ?? 'idle'
@@ -87,7 +88,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         tasks: state.tasks.map((t) =>
           t.id === action.id
-            ? { ...t, title: action.title, description: action.description, ticket: action.ticket, status: action.status ?? t.status ?? 'idle', dueDate: action.dueDate ?? undefined, prUrl: action.prUrl ?? undefined }
+            ? { ...t, title: action.title, description: action.description, ticket: action.ticket, taskType: action.taskType, status: action.status ?? t.status ?? 'idle', dueDate: action.dueDate ?? undefined, prUrl: action.prUrl ?? undefined }
             : t
         )
       }

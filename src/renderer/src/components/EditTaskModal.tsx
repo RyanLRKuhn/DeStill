@@ -1,6 +1,6 @@
 import React from 'react'
 import { useApp } from '../context/AppContext'
-import { Task } from '../types'
+import { Task, getTaskType } from '../types'
 import { CreateTaskForm, EditFormData } from './CreateTaskForm'
 
 interface Props {
@@ -11,9 +11,11 @@ interface Props {
 export function EditTaskModal({ task, onClose }: Props) {
   const { dispatch } = useApp()
 
+  const derivedType = getTaskType(task)
   const initialValues: EditFormData = {
     title: task.title,
     description: task.description,
+    taskType: derivedType === 'agent_generated' ? 'work' : derivedType,
     ticket: task.ticket,
     dueDate: task.dueDate,
     prUrl: task.prUrl,
@@ -26,6 +28,7 @@ export function EditTaskModal({ task, onClose }: Props) {
       id: task.id,
       title: data.title,
       description: data.description,
+      taskType: data.taskType,
       ticket: data.ticket,
       status: data.status,
       dueDate: data.dueDate,
