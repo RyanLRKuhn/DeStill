@@ -2,14 +2,16 @@ import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { PromptsModal } from './PromptsModal'
 import { ScheduledTasksModal } from './ScheduledTasksModal'
-import { SettingsModal } from './SettingsModal'
 
-export function Toolbar() {
+interface Props {
+  onOpenSettings: () => void
+}
+
+export function Toolbar({ onOpenSettings }: Props) {
   const { state, dispatch } = useApp()
   const completedCount = state.tasks.filter((t) => t.completed).length
   const [showPrompts, setShowPrompts] = useState(false)
   const [showScheduled, setShowScheduled] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
 
   return (
     <>
@@ -21,7 +23,7 @@ export function Toolbar() {
         <button className="completed-toggle" onClick={() => setShowScheduled(true)}>
           Scheduled ({state.scheduledTasks.length})
         </button>
-        <button className="completed-toggle" onClick={() => setShowSettings(true)}>
+        <button className="completed-toggle" onClick={onOpenSettings}>
           Settings
         </button>
         <button
@@ -33,7 +35,6 @@ export function Toolbar() {
       </div>
       {showPrompts && <PromptsModal onClose={() => setShowPrompts(false)} />}
       {showScheduled && <ScheduledTasksModal onClose={() => setShowScheduled(false)} />}
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </>
   )
 }

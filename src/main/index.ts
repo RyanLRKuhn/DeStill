@@ -15,6 +15,7 @@ import { spawn, execSync, ChildProcess } from "child_process";
 import Store from "electron-store";
 import { initJiraSync, fetchJiraStatuses, fetchJiraProjects, initialJiraSync } from "./jira-sync";
 import { syncGithubPrReviews, testGithubCredentials, debugGithubSync } from "./github-sync";
+import { initialLinearSync, fetchLinearStates } from "./linear-sync";
 
 const PORT = 7842;
 
@@ -75,6 +76,9 @@ interface Settings {
   githubToken?: string;
   githubUsername?: string;
   lastGithubSyncAt?: string;
+  linearApiKey?: string;
+  linearEnabled?: boolean;
+  linearStatusFilters?: string[];
 }
 
 const INBOX_COLUMN_ID = "inbox";
@@ -436,6 +440,24 @@ app.whenReady().then(() => {
     }
   });
 
+  ipcMain.handle("linear:resync", async () => {
+    try {
+      await initialLinearSync(store, notifyRenderer);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  });
+
+  ipcMain.handle("linear:fetch-states", async (_event, { apiKey }: { apiKey: string }) => {
+    try {
+      const states = await fetchLinearStates(apiKey);
+      return { states };
+    } catch (err) {
+      return { error: String(err) };
+    }
+  });
+
   ipcMain.handle("github:debug", async (_event, { token, username, repos }: { token: string; username: string; repos: string[] }) => {
     return debugGithubSync(token, username, repos);
   });
@@ -629,6 +651,9 @@ app.whenReady().then(() => {
   startScheduler();
   initJiraSync(store, notifyRenderer).catch((err) =>
     console.error("[jira] initJiraSync failed:", err),
+  );
+  initialLinearSync(store, notifyRenderer).catch((err) =>
+    console.error("[linear] initialLinearSync failed:", err),
   );
   createWindow();
 

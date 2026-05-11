@@ -6,7 +6,7 @@ interface Props {
   onClose: () => void
 }
 
-export function SettingsModal({ onClose }: Props) {
+export function SettingsPage({ onClose }: Props) {
   const [jiraToken, setJiraToken] = useState('')
   const [jiraEmail, setJiraEmail] = useState('')
   const [jiraBaseUrl, setJiraBaseUrl] = useState('')
@@ -31,6 +31,13 @@ export function SettingsModal({ onClose }: Props) {
   const [fetchingStatuses, setFetchingStatuses] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
+  const [linearApiKey, setLinearApiKey] = useState('')
+  const [linearEnabled, setLinearEnabled] = useState(false)
+  const [linearStatusFilters, setLinearStatusFilters] = useState<string[]>([])
+  const [availableLinearStates, setAvailableLinearStates] = useState<string[]>([])
+  const [fetchingLinearStates, setFetchingLinearStates] = useState(false)
+  const [linearFetchError, setLinearFetchError] = useState<string | null>(null)
+
   useEffect(() => {
     window.settings.get().then((s) => {
       const token = s.jiraToken ?? ''
@@ -45,6 +52,22 @@ export function SettingsModal({ onClose }: Props) {
       setRepos(s.repos ?? [])
       setGithubToken(s.githubToken ?? '')
       setGithubUsername(s.githubUsername ?? '')
+
+      const linearKey = s.linearApiKey ?? ''
+      setLinearApiKey(linearKey)
+      setLinearEnabled(s.linearEnabled ?? false)
+      setLinearStatusFilters(s.linearStatusFilters ?? [])
+      if (linearKey.trim()) {
+        setFetchingLinearStates(true)
+        window.linear.fetchStates({ apiKey: linearKey.trim() }).then((result) => {
+          setFetchingLinearStates(false)
+          if (result.error) {
+            setLinearFetchError(result.error)
+          } else {
+            setAvailableLinearStates(result.states ?? [])
+          }
+        })
+      }
 
       console.log('[settings] loaded Jira settings:', { token: !!token, email, baseUrl })
       if (token.trim() && email.trim() && baseUrl.trim()) {
@@ -107,6 +130,9 @@ export function SettingsModal({ onClose }: Props) {
       repos,
       githubToken: githubToken.trim() || undefined,
       githubUsername: githubUsername.trim() || undefined,
+      linearApiKey: linearApiKey.trim() || undefined,
+      linearEnabled,
+      linearStatusFilters,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -157,18 +183,14 @@ export function SettingsModal({ onClose }: Props) {
     setRepos((prev) => prev.filter((r) => r.id !== id))
   }
 
-  function handleBackdropClick(e: React.MouseEvent) {
-    if (e.target === e.currentTarget) onClose()
-  }
-
   return (
-    <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="modal">
-        <div className="modal-header">
-          <h2>Settings</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
-        </div>
-        <form onSubmit={handleSubmit}>
+    <div className="settings-page">
+      <div className="settings-page-header">
+        <button className="settings-back-btn" onClick={onClose}>← Back</button>
+        <h2>Settings</h2>
+      </div>
+      <div className="settings-page-content">
+        <form className="settings-page-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="jira-token">Jira API Token</label>
             <input
@@ -360,8 +382,51 @@ export function SettingsModal({ onClose }: Props) {
             )}
           </div>
 
+          <div className="settings-section">
+            <h3>Linear Automation</h3>
+            <div className="form-group">
+              <label htmlFor="linear-api-key">Linear API Key</label>
+              <input
+                id="linear-api-key"
+                type="password"
+                value={linearApiKey}
+                onChange={(e) => setLinearApiKey(e.target.value)}
+                placeholder="lin_api_..."
+                autoComplete="off"
+              />
+            </div>
+            <label className="toggle-label">
+              <input
+                type="checkbox"
+                checked={linearEnabled}
+                onChange={(e) => setLinearEnabled(e.target.checked)}
+              />
+              Enable Linear automation
+            </label>
+            <p className="settings-section-description">
+              Select which Linear states should automatically create tasks.
+            </p>
+            {linearFetchError && <p className="settings-error">{linearFetchError}</p>}
+            {fetchingLinearStates && <p className="settings-hint">Fetching states…</p>}
+            {!fetchingLinearStates && availableLinearStates.length > 0 && (
+              <div className="status-checklist">
+                {availableLinearStates.map((name) => (
+                  <label key={name} className="status-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={linearStatusFilters.includes(name)}
+                      onChange={() => setLinearStatusFilters((prev) =>
+                        prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
+                      )}
+                    />
+                    {name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn-primary">
               {saved ? 'Saved ✓' : 'Save'}
             </button>

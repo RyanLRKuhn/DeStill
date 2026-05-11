@@ -6,11 +6,13 @@ import { AddColumnInput } from './components/AddColumnInput'
 import { CompletedDrawer } from './components/CompletedDrawer'
 import { QuickCaptureModal } from './components/QuickCaptureModal'
 import { AgentLogPanel } from './components/AgentLogPanel'
+import { SettingsPage } from './components/SettingsModal'
 import './styles.css'
 
 function Board() {
   const { state } = useApp()
   const [showQuickCapture, setShowQuickCapture] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     return window.store.onQuickCapture(() => setShowQuickCapture(true))
@@ -20,9 +22,13 @@ function Board() {
     return <div className="loading">Loading...</div>
   }
 
+  if (showSettings) {
+    return <SettingsPage onClose={() => setShowSettings(false)} />
+  }
+
   return (
     <div className="app">
-      <Toolbar />
+      <Toolbar onOpenSettings={() => setShowSettings(true)} />
       <div className="main">
         {state.showCompleted ? (
           <CompletedDrawer />

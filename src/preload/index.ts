@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('store', {
 
 contextBridge.exposeInMainWorld('settings', {
   get: () => ipcRenderer.invoke('settings:get'),
-  set: (settings: { jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: { id: string; name: string; path: string }[]; jiraEnabled?: boolean }) =>
+  set: (settings: { jiraToken?: string; jiraEmail?: string; jiraBaseUrl?: string; jiraStatusFilters?: string[]; repos?: { id: string; name: string; path: string }[]; jiraEnabled?: boolean; linearApiKey?: string; linearEnabled?: boolean; linearStatusFilters?: string[] }) =>
     ipcRenderer.invoke('settings:set', settings)
 })
 
@@ -33,6 +33,11 @@ contextBridge.exposeInMainWorld('jira', {
   fetchStatuses: (params: { baseUrl: string; email: string; token: string; projectKey: string }) =>
     ipcRenderer.invoke('jira:fetch-statuses', params),
   resync: () => ipcRenderer.invoke('jira:resync')
+})
+
+contextBridge.exposeInMainWorld('linear', {
+  fetchStates: (params: { apiKey: string }) => ipcRenderer.invoke('linear:fetch-states', params),
+  resync: () => ipcRenderer.invoke('linear:resync')
 })
 
 contextBridge.exposeInMainWorld('agent', {
